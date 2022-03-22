@@ -1,3 +1,5 @@
+package net.prominic;
+
 import lotus.domino.Database;
 import lotus.domino.DateTime;
 import lotus.domino.Document;
