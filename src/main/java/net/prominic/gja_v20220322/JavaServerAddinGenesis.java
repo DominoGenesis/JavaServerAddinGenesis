@@ -1,5 +1,6 @@
-import java.io.BufferedReader;
+package net.prominic.gja_v20220322;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -18,7 +19,7 @@ import lotus.domino.Session;
 import lotus.notes.addins.JavaServerAddin;
 import lotus.notes.internal.MessageQueue;
 
-abstract class JavaServerAddinGenesis extends JavaServerAddin {
+public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 	// MessageQueue Constants
 	// Message Queue name for this Addin (normally uppercase);
