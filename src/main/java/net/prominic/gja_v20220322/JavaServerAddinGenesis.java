@@ -263,7 +263,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		if (!file.exists()) return;
 		
 		this.logMessage("setup.json - is going to be processed");
-		SetupJSON action = new SetupJSON(m_session);
+		JSONRules action = new JSONRules(m_session);
 		action.execute(this.m_javaAddinJSON);
 		
 		file.delete();

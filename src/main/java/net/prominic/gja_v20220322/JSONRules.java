@@ -2,7 +2,6 @@ package net.prominic.gja_v20220322;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,30 +16,75 @@ import lotus.domino.DocumentCollection;
 import lotus.domino.NotesException;
 import lotus.domino.Session;
 
-public class SetupJSON {
+public class JSONRules {
 	private Session m_session;
 
-	public SetupJSON(Session session) {
+	public JSONRules(Session session) {
 		m_session = session;
 	}
 
-	public void execute(String filePath) {
+	public void execute(String json) {
 		JSONParser parser = new JSONParser();
-		try (Reader reader = new FileReader(filePath)) {
-			JSONObject jsonObject = (JSONObject) parser.parse(reader);
-			JSONObject appConfiguration = (JSONObject) jsonObject.get("appConfiguration");
-			if (appConfiguration != null) {
-				this.parseAppConfiguration(appConfiguration);
-			}
-			reader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+		try {
+			JSONObject jsonObject = (JSONObject) parser.parse(json);
+			execute(jsonObject);
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 	}
 
+	public void execute(FileReader fr) {
+		JSONParser parser = new JSONParser();
+		try {
+			JSONObject jsonObject = (JSONObject) parser.parse(fr);
+			execute(jsonObject);
+		} catch (IOException | ParseException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void execute(JSONObject jsonObject) {
+		JSONArray files = (JSONArray) jsonObject.get("files");
+		JSONObject appConfiguration = (JSONObject) jsonObject.get("appConfiguration");
+
+		this.parseFiles(files);
+		this.parseAppConfiguration(appConfiguration);
+	}
+
+	private void parseFiles(JSONArray files) {
+		if (files == null) return;
+
+		String directory;
+		try {
+			directory = this.getNotesINI("Directory");
+			log("directory = " + directory);
+
+			for(int i=0; i<files.size(); i++) {
+				JSONObject obj = (JSONObject) files.get(i);
+
+				String from = (String) obj.get("from");
+				String to = String.valueOf(obj.get("to"));
+
+				if (to.indexOf("${directory}")>=0) {
+					to = to.replace("${directory}", directory);
+				};
+				
+				log("file will be downloaded:");
+				log("from = " + from);
+				log("to = " + to);
+				
+				HTTP.saveURLTo(from, to);
+				
+				log("> done");
+			}
+		} catch (NotesException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private void parseAppConfiguration(JSONObject appConfiguration) {
+		if (appConfiguration == null) return;
+
 		// notes.ini
 		JSONArray notesINI = (JSONArray) appConfiguration.get("notesINI");
 		parseNotesINI(notesINI);
@@ -71,7 +115,7 @@ public class SetupJSON {
 			else {
 				database = m_session.getDatabase(null, filePath);
 			}
-			
+
 			if (database == null) return;
 
 			JSONArray documents = (JSONArray) json.get("documents");
@@ -176,7 +220,7 @@ public class SetupJSON {
 				database.setTitle(title);
 				log(database.getFilePath() + " - has been created");
 			}
-			
+
 			log(database.getFilePath() + " - exists/created");
 			if (database.isOpen()) {
 				log("> it is opened");
