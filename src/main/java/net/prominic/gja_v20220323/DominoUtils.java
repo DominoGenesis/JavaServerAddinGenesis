@@ -4,16 +4,10 @@ import lotus.domino.Database;
 import lotus.domino.Document;
 import lotus.domino.NoteCollection;
 import lotus.domino.NotesException;
-import lotus.domino.Session;
 
 public class DominoUtils {
-	public static void signDb(Session session, String filePath) {
+	public static void sign(Database database) {
 		try {
-			Database database = session.getDatabase(null, filePath);
-			if (database == null || !database.isOpen()) {
-				log("database not found: " + filePath);
-				return;
-			}
 			log(database.getTitle().concat(" - initialized"));
 
 			NoteCollection nc = database.createNoteCollection(false);
@@ -34,9 +28,8 @@ public class DominoUtils {
 			}
 
 			log(database.getTitle().concat(" - has been signed (").concat(String.valueOf(nc.getCount())) + " design elements)");
-			
-			nc.recycle();
-			database.recycle();
+
+			nc.recycle();		
 		} catch (NotesException e) {
 			log("signDb command failed: " + e.getMessage());
 		}

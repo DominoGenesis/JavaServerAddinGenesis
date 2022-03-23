@@ -1,8 +1,10 @@
 package net.prominic.gja_v20220323;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,11 +76,20 @@ public class JSONRules {
 				log("from = " + from);
 				log("to = " + to);
 				
+				String toPath = to.substring(0, to.lastIndexOf("/"));
+				Path path = Paths.get(toPath);
+				if (!Files.exists(path)) {
+				    Files.createDirectories(path);
+					log(toPath + " - created");
+				}
+			    
 				HTTP.saveURLTo(from, to);
 				
 				log("> done");
 			}
 		} catch (NotesException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -108,6 +119,8 @@ public class JSONRules {
 			Database database = null;
 			String action = (String) json.get("action");
 			String filePath = (String) json.get("filePath");
+			boolean sign = json.containsKey("sign") && (boolean) json.get("sign");
+			
 			if ("create".equalsIgnoreCase(action)) {
 				String title = (String) json.get("title");
 				String templatePath = (String) json.get("templatePath");
@@ -119,6 +132,11 @@ public class JSONRules {
 
 			if (database == null) return;
 
+			log("sign=" + String.valueOf(sign));
+			if (sign) {
+				DominoUtils.sign(database);
+			}
+			
 			JSONArray documents = (JSONArray) json.get("documents");
 			parseDocuments(database, documents);
 		} catch (NotesException e) {
@@ -144,18 +162,19 @@ public class JSONRules {
 	}
 
 	private void createDocuments(Database database, JSONObject json, boolean computeWithForm) {
+		log("- create document(s)");
 		JSONObject items = (JSONObject) json.get("items");
 		Document doc = null;
 		try {
 			doc = database.createDocument();
 			updateDocument(doc, items, computeWithForm);
-
 		} catch (NotesException e) {
 			e.printStackTrace();
 		}
 	}
 
 	private void updateDocuments(Database database, JSONObject json, boolean computeWithForm) {
+		log("- update document(s)");
 		JSONObject items = (JSONObject) json.get("items");
 		JSONObject findDocument = (JSONObject) json.get("findDocument");
 
