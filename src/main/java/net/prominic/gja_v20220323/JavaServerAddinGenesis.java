@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220322;
+package net.prominic.gja_v20220323;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -263,8 +264,16 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		if (!file.exists()) return;
 		
 		this.logMessage("setup.json - is going to be processed");
+
 		JSONRules action = new JSONRules(m_session);
-		action.execute(this.m_javaAddinJSON);
+		try (Reader reader = new FileReader(this.m_javaAddinJSON)) {
+			action.execute(reader);
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		file.delete();
 		this.logMessage("setup.json - processed (deleted)");

@@ -1,7 +1,8 @@
-package net.prominic.gja_v20220322;
+package net.prominic.gja_v20220323;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,10 +34,10 @@ public class JSONRules {
 		}
 	}
 
-	public void execute(FileReader fr) {
+	public void execute(Reader reader) {
 		JSONParser parser = new JSONParser();
 		try {
-			JSONObject jsonObject = (JSONObject) parser.parse(fr);
+			JSONObject jsonObject = (JSONObject) parser.parse(reader);
 			execute(jsonObject);
 		} catch (IOException | ParseException e) {
 			e.printStackTrace();
