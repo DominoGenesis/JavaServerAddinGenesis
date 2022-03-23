@@ -58,6 +58,10 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected String getJavaAddinName() {
 		return this.getClass().getName();
 	}
+	
+	protected String getCoreVersion() {
+		return "0.1.0";
+	}
 
 	protected String getQName() {
 		return MSG_Q_PREFIX + getJavaAddinName().toUpperCase();
@@ -332,7 +336,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		AddInLogMessageText("See https://prominic.net for more details.");
 	}
 	private void showInfo() {
-		logMessage("version      " + this.getJavaAddinVersion());
+		logMessage("version      " + this.getJavaAddinVersion() + " (core: " + this.getCoreVersion() + ")");
 		logMessage("date         " + this.getJavaAddinDate());
 		logMessage("parameters   " + Arrays.toString(this.args));
 
