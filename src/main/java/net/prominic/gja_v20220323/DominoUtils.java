@@ -35,9 +35,8 @@ public class DominoUtils {
 		}
 	}
 
-	private static void log(String string) {
-		System.out.println();
+	private static void log(String s) {
+		System.out.println(s);
 	}
-
 
 }

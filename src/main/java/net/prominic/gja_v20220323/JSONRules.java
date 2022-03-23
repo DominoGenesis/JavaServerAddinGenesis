@@ -47,11 +47,34 @@ public class JSONRules {
 	}
 
 	public void execute(JSONObject jsonObject) {
-		JSONArray files = (JSONArray) jsonObject.get("files");
-		JSONObject appConfiguration = (JSONObject) jsonObject.get("appConfiguration");
 
+		// if error
+		if (jsonObject.containsKey("error")) {
+			String error = (String) jsonObject.get("error");	
+			log(error);
+			return;
+		}
+		
+		JSONArray files = (JSONArray) jsonObject.get("files");
 		this.parseFiles(files);
+
+		JSONObject appConfiguration = (JSONObject) jsonObject.get("appConfiguration");
 		this.parseAppConfiguration(appConfiguration);
+
+		JSONObject success = (JSONObject) jsonObject.get("success");
+		this.parseSuccess(success);
+	}
+
+	private void parseSuccess(JSONObject success) {
+		if (success == null) return;
+		
+		JSONArray messages = (JSONArray) success.get("messages");
+		if (messages == null) return;
+		
+		for(int i=0; i<messages.size(); i++) {
+			String message = (String) messages.get(i);
+			log(message);
+		}
 	}
 
 	private void parseFiles(JSONArray files) {
@@ -121,6 +144,8 @@ public class JSONRules {
 			String filePath = (String) json.get("filePath");
 			boolean sign = json.containsKey("sign") && (boolean) json.get("sign");
 			
+			log("database=" + filePath);
+			
 			if ("create".equalsIgnoreCase(action)) {
 				String title = (String) json.get("title");
 				String templatePath = (String) json.get("templatePath");
@@ -130,9 +155,11 @@ public class JSONRules {
 				database = m_session.getDatabase(null, filePath);
 			}
 
-			if (database == null) return;
+			if (database == null) {
+				log("Database not found: " + filePath);
+				return;
+			};
 
-			log("sign=" + String.valueOf(sign));
 			if (sign) {
 				DominoUtils.sign(database);
 			}
@@ -177,9 +204,9 @@ public class JSONRules {
 		log("- update document(s)");
 		JSONObject items = (JSONObject) json.get("items");
 		JSONObject findDocument = (JSONObject) json.get("findDocument");
-
+		
 		try {
-			String search = null;
+			String search = "";
 			@SuppressWarnings("unchecked")
 			Set<Map.Entry<String, Object>> entries = findDocument.entrySet();
 			for (Map.Entry<String, Object> entry : entries) {
