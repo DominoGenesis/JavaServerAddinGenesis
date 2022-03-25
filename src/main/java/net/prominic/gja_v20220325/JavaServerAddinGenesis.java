@@ -236,7 +236,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 				}
 				
 				// check for setup.json
-				executeJSON();
+				// executeJSON();
 
 				// check for command from console
 				messageQueueState = mq.get(qBuffer, MQ_MAX_MSGSIZE, MessageQueue.MQ_WAIT_FOR_MSG, 1000);
@@ -263,13 +263,14 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		}
 	}
 	
+	/*
 	private void executeJSON() {
 		File file = new File(this.m_javaAddinJSON);
 		if (!file.exists()) return;
 		
 		this.logMessage("setup.json - is going to be processed");
 
-		JSONRules action = new JSONRules(m_session);
+		JSONRules action = new JSONRules(m_session, this);
 		try (Reader reader = new FileReader(this.m_javaAddinJSON)) {
 			action.execute(reader);
 			reader.close();
@@ -282,6 +283,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		file.delete();
 		this.logMessage("setup.json - processed (deleted)");
 	}
+	*/
 	
 	// file keeps getting updated while java addin works
 	private void updateLiveDateStamp() {
