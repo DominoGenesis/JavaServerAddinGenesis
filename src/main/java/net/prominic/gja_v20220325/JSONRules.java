@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220323;
+package net.prominic.gja_v20220325;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -21,9 +21,11 @@ import lotus.domino.Session;
 
 public class JSONRules {
 	private Session m_session;
+	private String m_catalog;
 
-	public JSONRules(Session session) {
+	public JSONRules(Session session, String catalog) {
 		m_session = session;
+		m_catalog = catalog;
 	}
 
 	public void execute(String json) {
@@ -46,68 +48,114 @@ public class JSONRules {
 		}
 	}
 
+	/*
+	 * Exectute JSON
+	 */
 	public void execute(JSONObject jsonObject) {
-
 		// if error
 		if (jsonObject.containsKey("error")) {
 			String error = (String) jsonObject.get("error");	
 			log(error);
 			return;
 		}
-		
-		JSONArray files = (JSONArray) jsonObject.get("files");
-		this.parseFiles(files);
 
-		JSONObject appConfiguration = (JSONObject) jsonObject.get("appConfiguration");
-		this.parseAppConfiguration(appConfiguration);
+		JSONArray steps = (JSONArray) jsonObject.get("steps");
+		if (steps.size() == 0) {
+			log("there are no steps defined in json file");
+			return;
+		}
 
-		JSONObject success = (JSONObject) jsonObject.get("success");
-		this.parseSuccess(success);
-	}
-
-	private void parseSuccess(JSONObject success) {
-		if (success == null) return;
-		
-		JSONArray messages = (JSONArray) success.get("messages");
-		if (messages == null) return;
-		
-		for(int i=0; i<messages.size(); i++) {
-			String message = (String) messages.get(i);
-			log(message);
+		for(int i=0; i<steps.size(); i++) {
+			JSONObject step = (JSONObject) steps.get(i);
+			parseStep(step);
 		}
 	}
 
-	private void parseFiles(JSONArray files) {
-		if (files == null) return;
+	/*
+	 * Parse a step
+	 */
+	private void parseStep(JSONObject step) {
+		if (step.containsKey("title")) {
+			log(step.get("title"));
+		}
+
+		if (step.containsKey("dependencies")) {
+			doDependencies((JSONArray) step.get("dependencies"));
+		}
+		else if(step.containsKey("files")) {
+			doFiles((JSONArray) step.get("files"));
+		}
+		else if(step.containsKey("notesINI")) {
+			doNotesINI((JSONArray) step.get("notesINI"));
+		}
+		else if(step.containsKey("databases")) {
+			doDatabases((JSONArray) step.get("databases"));
+		}
+		else if(step.containsKey("messages")) {
+			doMessages((JSONArray) step.get("messages"));
+		}
+	}
+	
+	private void doDependencies(JSONArray list) {
+		if (list == null || list.size() == 0) return;
+
+		try {
+			for(int i=0; i<list.size(); i++) {
+				String v = (String) list.get(i);
+
+				StringBuffer appJSON = HTTP.get(m_catalog + "/app?openagent&name=" + v);
+				JSONRules dependency = new JSONRules(this.m_session, this.m_catalog);
+				dependency.execute(appJSON.toString());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/*
+	 * Display messages to Domino console
+	 */
+	private void doMessages(JSONArray list) {
+		if (list == null || list.size() == 0) return;
+
+		for(int i=0; i<list.size(); i++) {
+			String v = (String) list.get(i);
+			log(v);
+		}
+	}
+
+	/*
+	 * Download files
+	 */
+	private void doFiles(JSONArray list) {
+		if (list == null || list.size() == 0) return;
 
 		String directory;
 		try {
-			directory = this.getNotesINI("Directory");
-			log("directory = " + directory);
+			directory = this.m_session.getEnvironmentString("Directory", true);
 
-			for(int i=0; i<files.size(); i++) {
-				JSONObject obj = (JSONObject) files.get(i);
+			for(int i=0; i<list.size(); i++) {
+				JSONObject obj = (JSONObject) list.get(i);
 
 				String from = (String) obj.get("from");
-				String to = String.valueOf(obj.get("to"));
+				String to = (String) obj.get("to");
 
 				if (to.indexOf("${directory}")>=0) {
 					to = to.replace("${directory}", directory);
 				};
-				
-				log("file will be downloaded:");
+
 				log("from = " + from);
 				log("to = " + to);
-				
+
 				String toPath = to.substring(0, to.lastIndexOf("/"));
 				Path path = Paths.get(toPath);
 				if (!Files.exists(path)) {
-				    Files.createDirectories(path);
+					Files.createDirectories(path);
 					log(toPath + " - created");
 				}
-			    
+
 				HTTP.saveURLTo(from, to);
-				
+
 				log("> done");
 			}
 		} catch (NotesException e) {
@@ -117,22 +165,53 @@ public class JSONRules {
 		}
 	}
 
-	private void parseAppConfiguration(JSONObject appConfiguration) {
-		if (appConfiguration == null) return;
+	/*
+	 * notes.INI handling
+	 */
+	private void doNotesINI(JSONArray list) {
+		if (list == null || list.size() == 0) return;
 
-		// notes.ini
-		JSONArray notesINI = (JSONArray) appConfiguration.get("notesINI");
-		parseNotesINI(notesINI);
+		for(int i=0; i<list.size(); i++) {
+			JSONObject obj = (JSONObject) list.get(i);
 
-		JSONArray databases = (JSONArray) appConfiguration.get("databases");		
-		parseDatabases(databases);
+			String name = (String) obj.get("name");
+			String value = String.valueOf(obj.get("value"));
+			String action = (String) obj.get("action");
+
+			try {
+				// append with separator
+				boolean append = (action != null && "append".equalsIgnoreCase(action));
+				setNotesINI(name, value, append);
+			} catch (NotesException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
-	private void parseDatabases(JSONArray array) {
-		if (array == null) return;
+	/*
+	 * notes.INI variables (set, append)
+	 */
+	private void setNotesINI(String name, String value, boolean append) throws NotesException {
+		if (append) {
+			String currentValue = m_session.getEnvironmentString(name, true);
+			if (!currentValue.contains(value)) {
+				if (!currentValue.isEmpty()) {
+					currentValue += ",";
+				}
+				currentValue += value;
+			}
+			value = currentValue;
+		}
 
-		for(int i=0; i<array.size(); i++) {
-			JSONObject database = (JSONObject) array.get(i);
+		m_session.setEnvironmentVar(name, value, true);	
+		log("notes.ini: " + name + " = " + value);
+	}
+
+	private void doDatabases(JSONArray list) {
+		if (list == null || list.size() == 0) return;
+
+		for(int i=0; i<list.size(); i++) {
+			JSONObject database = (JSONObject) list.get(i);
 			parseDatabase(database);
 		}
 	}
@@ -143,9 +222,9 @@ public class JSONRules {
 			String action = (String) json.get("action");
 			String filePath = (String) json.get("filePath");
 			boolean sign = json.containsKey("sign") && (boolean) json.get("sign");
-			
+
 			log("database=" + filePath);
-			
+
 			if ("create".equalsIgnoreCase(action)) {
 				String title = (String) json.get("title");
 				String templatePath = (String) json.get("templatePath");
@@ -163,7 +242,7 @@ public class JSONRules {
 			if (sign) {
 				DominoUtils.sign(database);
 			}
-			
+
 			JSONArray documents = (JSONArray) json.get("documents");
 			parseDocuments(database, documents);
 		} catch (NotesException e) {
@@ -204,7 +283,7 @@ public class JSONRules {
 		log("- update document(s)");
 		JSONObject items = (JSONObject) json.get("items");
 		JSONObject findDocument = (JSONObject) json.get("findDocument");
-		
+
 		try {
 			String search = "";
 			@SuppressWarnings("unchecked")
@@ -284,48 +363,6 @@ public class JSONRules {
 		return database;
 	}
 
-	/*
-	 * notes.INI handling
-	 */
-	private void parseNotesINI(JSONArray array) {
-		if (array == null) return;
-
-		for(int i=0; i<array.size(); i++) {
-			JSONObject obj = (JSONObject) array.get(i);
-
-			String name = (String) obj.get("name");
-			String value = String.valueOf(obj.get("value"));
-			String action = (String) obj.get("action");
-
-			try {
-				// append with separator
-				boolean append = (action != null && "append".equalsIgnoreCase(action));
-				setNotesINI(name, value, append);
-			} catch (NotesException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private String getNotesINI(String name) throws NotesException {
-		return m_session.getEnvironmentString(name, true);
-	}
-
-	private void setNotesINI(String name, String value, boolean append) throws NotesException {
-		if (append) {
-			String currentValue = getNotesINI(name);
-			if (!currentValue.contains(value)) {
-				if (!currentValue.isEmpty()) {
-					currentValue += ",";
-				}
-				currentValue += value;
-			}
-			value = currentValue;
-		}
-
-		m_session.setEnvironmentVar(name, value, true);	
-		log("notes.ini: " + name + " = " + value);
-	}
 
 	private void log(Object o) {
 		System.out.println(o.toString());
