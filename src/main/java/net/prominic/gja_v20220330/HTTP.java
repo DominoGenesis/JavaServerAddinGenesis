@@ -1,12 +1,16 @@
-package net.prominic.gja_v20220325;
+package net.prominic.gja_v20220330;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -77,33 +81,23 @@ public class HTTP {
 		return response;
 	}
 
-	public static boolean saveURLTo(String fileURL, String filePath) {
-		boolean res = false;
+	public static boolean saveFile(URL download, String filePath) {
 		try {
-			URL url = new URL(fileURL);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
-			int responseCode = con.getResponseCode();
-
-			if (responseCode == HttpURLConnection.HTTP_OK) {
-				InputStream is = con.getInputStream();
-				FileOutputStream os = new FileOutputStream(filePath);
-
-				int bytesRead = -1;
-				byte[] buffer = new byte[4096];
-				while ((bytesRead = is.read(buffer)) != -1) {
-					os.write(buffer, 0, bytesRead);
-				}
-
-				os.close();
-				is.close();
-
-				res = true;
-			}
-			con.disconnect();
-		} catch (Exception e) {
+			ReadableByteChannel rbc = Channels.newChannel(download.openStream());
+			FileOutputStream fos = new FileOutputStream(filePath);
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
+			return true;
+		}
+		catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
-		return res;
+		catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 }

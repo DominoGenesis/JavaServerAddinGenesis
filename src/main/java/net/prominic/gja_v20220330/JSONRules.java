@@ -1,7 +1,8 @@
-package net.prominic.gja_v20220325;
+package net.prominic.gja_v20220330;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,15 +52,19 @@ public class JSONRules {
 	/*
 	 * Exectute JSON
 	 */
-	public void execute(JSONObject jsonObject) {
+	public void execute(JSONObject obj) {
 		// if error
-		if (jsonObject.containsKey("error")) {
-			String error = (String) jsonObject.get("error");	
+		if (obj.containsKey("error")) {
+			String error = (String) obj.get("error");	
 			log(error);
 			return;
 		}
-
-		JSONArray steps = (JSONArray) jsonObject.get("steps");
+		
+		if (obj.containsKey("title")) {
+			this.log(obj.get("title"));
+		}
+		
+		JSONArray steps = (JSONArray) obj.get("steps");
 		if (steps.size() == 0) {
 			log("there are no steps defined in json file");
 			return;
@@ -102,6 +107,8 @@ public class JSONRules {
 		try {
 			for(int i=0; i<list.size(); i++) {
 				String v = (String) list.get(i);
+				
+				log("Dependency detected: " + v);
 
 				StringBuffer appJSON = HTTP.get(m_catalog + "/app?openagent&name=" + v);
 				JSONRules dependency = new JSONRules(this.m_session, this.m_catalog);
@@ -144,17 +151,20 @@ public class JSONRules {
 					to = to.replace("${directory}", directory);
 				};
 
-				log("from = " + from);
-				log("to = " + to);
+				log("Download: " + from);
+				log("To: " + to);
 
+				// create sub folders if needed
 				String toPath = to.substring(0, to.lastIndexOf("/"));
 				Path path = Paths.get(toPath);
 				if (!Files.exists(path)) {
 					Files.createDirectories(path);
-					log(toPath + " - created");
 				}
 
-				HTTP.saveURLTo(from, to);
+				boolean res = HTTP.saveFile(new URL(from), to);
+				if (!res) {
+					log("> failed to download");
+				}
 
 				log("> done");
 			}
@@ -176,12 +186,11 @@ public class JSONRules {
 
 			String name = (String) obj.get("name");
 			String value = String.valueOf(obj.get("value"));
-			String action = (String) obj.get("action");
+			boolean multivalue = obj.containsKey("multivalue") && (boolean) obj.get("multivalue");
+			String sep = multivalue ? (String) obj.get("sep") : "";
 
 			try {
-				// append with separator
-				boolean append = (action != null && "append".equalsIgnoreCase(action));
-				setNotesINI(name, value, append);
+				setNotesINI(name, value, multivalue, sep);
 			} catch (NotesException e) {
 				e.printStackTrace();
 			}
@@ -189,14 +198,14 @@ public class JSONRules {
 	}
 
 	/*
-	 * notes.INI variables (set, append)
+	 * notes.INI variables
 	 */
-	private void setNotesINI(String name, String value, boolean append) throws NotesException {
-		if (append) {
+	private void setNotesINI(String name, String value, boolean multivalue, String sep) throws NotesException {
+		if (multivalue) {
 			String currentValue = m_session.getEnvironmentString(name, true);
 			if (!currentValue.contains(value)) {
 				if (!currentValue.isEmpty()) {
-					currentValue += ",";
+					currentValue += sep;
 				}
 				currentValue += value;
 			}
@@ -204,7 +213,7 @@ public class JSONRules {
 		}
 
 		m_session.setEnvironmentVar(name, value, true);	
-		log("notes.ini: " + name + " = " + value);
+		log(name + " = " + value);
 	}
 
 	private void doDatabases(JSONArray list) {
@@ -223,7 +232,7 @@ public class JSONRules {
 			String filePath = (String) json.get("filePath");
 			boolean sign = json.containsKey("sign") && (boolean) json.get("sign");
 
-			log("database=" + filePath);
+			log(" > " + filePath);
 
 			if ("create".equalsIgnoreCase(action)) {
 				String title = (String) json.get("title");
@@ -235,7 +244,7 @@ public class JSONRules {
 			}
 
 			if (database == null) {
-				log("Database not found: " + filePath);
+				log("> Database not found: " + filePath);
 				return;
 			};
 
@@ -317,15 +326,12 @@ public class JSONRules {
 			String name = entry.getKey();
 			Object value = entry.getValue();
 			doc.replaceItemValue(name, value);
-			log("doc: " + name + " = " + value);
 		}
 
 		if (computeWithForm) {
 			doc.computeWithForm(true, false);
-			log("doc: compute with form : on");
 		}
 		doc.save();
-		log("doc: saved");
 	}
 
 	private Database createDatabaseFromTemplate(String filePath, String title, String templatePath) {

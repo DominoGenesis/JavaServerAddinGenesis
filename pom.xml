@@ -3,7 +3,7 @@
 	<groupId>net.prominic</groupId>
 	<artifactId>gja</artifactId>
 	<packaging>jar</packaging>
-	<version>2022-03-25</version>
+	<version>2022-03-30</version>
 	<name>GJA</name>
 	<url>http://maven.apache.org</url>
 

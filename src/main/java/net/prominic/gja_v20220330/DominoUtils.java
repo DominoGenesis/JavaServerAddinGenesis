@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220325;
+package net.prominic.gja_v20220330;
 
 import lotus.domino.Database;
 import lotus.domino.Document;
@@ -8,13 +8,13 @@ import lotus.domino.NotesException;
 public class DominoUtils {
 	public static void sign(Database database) {
 		try {
-			log(database.getTitle().concat(" - initialized"));
+			log("[Sign] " + database.getTitle() + " - started");
 
 			NoteCollection nc = database.createNoteCollection(false);
 			nc.selectAllDesignElements(true);
 			nc.buildCollection();
 
-			log(database.getTitle().concat(" - design elements to sign: " + String.valueOf(nc.getCount())));
+			log(" - design elements to sign: " + String.valueOf(nc.getCount()));
 
 			String noteid = nc.getFirstNoteID();
 			while (noteid.length() > 0) {
@@ -27,11 +27,11 @@ public class DominoUtils {
 				noteid = nc.getNextNoteID(noteid);
 			}
 
-			log(database.getTitle().concat(" - has been signed (").concat(String.valueOf(nc.getCount())) + " design elements)");
+			log("[Sign] " + database.getTitle() + " - completed");
 
 			nc.recycle();		
 		} catch (NotesException e) {
-			log("signDb command failed: " + e.getMessage());
+			log("sign command failed: " + e.getMessage());
 		}
 	}
 
