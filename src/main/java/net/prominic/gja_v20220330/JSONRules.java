@@ -1,5 +1,6 @@
 package net.prominic.gja_v20220330;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
@@ -59,11 +60,11 @@ public class JSONRules {
 			log(error);
 			return;
 		}
-		
+
 		if (obj.containsKey("title")) {
 			this.log(obj.get("title"));
 		}
-		
+
 		JSONArray steps = (JSONArray) obj.get("steps");
 		if (steps.size() == 0) {
 			log("there are no steps defined in json file");
@@ -100,14 +101,14 @@ public class JSONRules {
 			doMessages((JSONArray) step.get("messages"));
 		}
 	}
-	
+
 	private void doDependencies(JSONArray list) {
 		if (list == null || list.size() == 0) return;
 
 		try {
 			for(int i=0; i<list.size(); i++) {
 				String v = (String) list.get(i);
-				
+
 				log("Dependency detected: " + v);
 
 				StringBuffer appJSON = HTTP.get(m_catalog + "/app?openagent&name=" + v);
@@ -151,28 +152,39 @@ public class JSONRules {
 					to = to.replace("${directory}", directory);
 				};
 
-				log("Download: " + from);
-				log("To: " + to);
-
-				// create sub folders if needed
-				String toPath = to.substring(0, to.lastIndexOf("/"));
-				Path path = Paths.get(toPath);
-				if (!Files.exists(path)) {
-					Files.createDirectories(path);
-				}
-
-				boolean res = HTTP.saveFile(new URL(from), to);
-				if (!res) {
-					log("> failed to download");
-				}
-
-				log("> done");
+				saveFile(from, to);
 			}
 		} catch (NotesException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void saveFile(String from, String to) throws IOException {
+		log("Download: " + from);
+		log("To: " + to);
+
+		// check if file already exists (by default skip)
+		File file = new File(to);
+		if (file.exists()) {
+			log("> skip (already exists)");
+			return;
+		}
+
+		// create sub folders if needed
+		String toPath = to.substring(0, to.lastIndexOf("/"));
+		Path path = Paths.get(toPath);
+		if (!Files.exists(path)) {
+			Files.createDirectories(path);
+		}
+
+		boolean res = HTTP.saveFile(new URL(from), to);
+		if (!res) {
+			log("> failed to download");
+		}
+
+		log("> done");					
 	}
 
 	/*
