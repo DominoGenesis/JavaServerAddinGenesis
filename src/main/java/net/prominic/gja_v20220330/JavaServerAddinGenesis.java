@@ -53,13 +53,16 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected abstract String getJavaAddinDate();
 	protected void showHelpExt() {}
 	protected void showInfoExt() {}
-
+	protected void runNotesBeforeInitialize() {}
+	protected void runNotesBeforeListen() {}
+	protected void termBeforeAB() {}
+	
 	protected String getJavaAddinName() {
 		return this.getClass().getName();
 	}
 	
 	protected String getCoreVersion() {
-		return "0.2.2";
+		return "0.2.3";
 	}
 
 	protected String getQName() {
@@ -68,7 +71,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 	/* the runNotes method, which is the main loop of the Addin */
 	@Override
-	public void runNotes () {
+	public void runNotes() {
 		// Set the Java thread name to the class name (default would be "Thread-n")
 		this.setName(this.getJavaAddinName());
 
@@ -96,13 +99,13 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 			showInfo();
 
+			runNotesBeforeListen();
+			
 			listen();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
-
-	protected void runNotesBeforeInitialize() {}
 
 	protected String[] getAllAddin() {
 		File file = new File(JAVA_ADDIN_ROOT);
@@ -224,8 +227,9 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 			updateLiveDateStamp();
 
-			setAddinState("Idle");
 			while (this.addInRunning() && (messageQueueState != MessageQueue.ERR_MQ_QUITTING)) {
+				setAddinState("Idle");
+
 				/* gives control to other task in non preemptive os*/
 				OSPreemptOccasionally();
 
@@ -234,9 +238,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 					updateLiveDateStamp();
 				}
 				
-				// check for setup.json
-				// executeJSON();
-
 				// check for command from console
 				messageQueueState = mq.get(qBuffer, MQ_MAX_MSGSIZE, MessageQueue.MQ_WAIT_FOR_MSG, 1000);
 				if (messageQueueState == MessageQueue.ERR_MQ_QUITTING) {
@@ -245,7 +246,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 				// check messages for Genesis
 				String cmd = qBuffer.toString().trim();
-
 				if (!cmd.isEmpty()) {
 					resolveMessageQueueState(cmd);
 				};
@@ -326,7 +326,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		AddInLogMessageText("   quit             Unload addin");
 		AddInLogMessageText("   help             Show help information (or -h)");
 		AddInLogMessageText("   info             Show version and more of Genesis");
-		AddInLogMessageText("   uninstall        Uninstall addin");
+//		AddInLogMessageText("   uninstall        Uninstall addin");
 
 		// in case if you need to extend help with other commands
 		showHelpExt();
@@ -403,9 +403,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	text	Text to be set
 	 */
 	protected final void setAddinState(String text) {
-
-		if (this.dominoTaskID == 0)
-			return;
+		if (this.dominoTaskID == 0) return;
 
 		AddInSetStatusLine(this.dominoTaskID, text);
 	}
@@ -436,6 +434,12 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		try {
 			AddInDeleteStatusLine(dominoTaskID);
 
+			termBeforeAB();
+			
+			if (this.m_ab != null) {
+				this.m_ab.recycle();
+				this.m_ab = null;
+			}
 			if (this.m_session != null) {
 				this.m_session.recycle();
 				this.m_session = null;
