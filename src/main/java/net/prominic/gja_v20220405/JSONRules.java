@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220330;
+package net.prominic.gja_v20220405;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,10 +24,12 @@ import lotus.domino.NotesException;
 public class JSONRules {
 	private Session m_session;
 	private String m_catalog;
-
-	public JSONRules(Session session, String catalog) {
+	private String m_version;
+	
+	public JSONRules(Session session, String catalog, String version) {
 		m_session = session;
 		m_catalog = catalog;
+		m_version = version;
 	}
 
 	public void execute(String json) {
@@ -61,13 +63,20 @@ public class JSONRules {
 			return;
 		}
 
+		@SuppressWarnings("unchecked")
+		String version = (String) obj.getOrDefault("version", "?");
+		if (!version.equalsIgnoreCase(m_version)) {
+			log("Genesis is outdated. Please update it to version: " + m_version);
+			return;
+		}
+
 		if (obj.containsKey("title")) {
 			this.log(obj.get("title"));
 		}
 
 		JSONArray steps = (JSONArray) obj.get("steps");
 		if (steps.size() == 0) {
-			log("there are no steps defined in json file");
+			log("Invalid JSON structure (no steps defined)");
 			return;
 		}
 
