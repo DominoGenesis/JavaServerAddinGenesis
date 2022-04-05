@@ -121,7 +121,7 @@ public class JSONRules {
 				log("Dependency detected: " + v);
 
 				StringBuffer appJSON = HTTP.get(m_catalog + "/app?openagent&name=" + v);
-				JSONRules dependency = new JSONRules(this.m_session, this.m_catalog);
+				JSONRules dependency = new JSONRules(this.m_session, this.m_catalog, this.m_version);
 				dependency.execute(appJSON.toString());
 			}
 		} catch (IOException e) {
