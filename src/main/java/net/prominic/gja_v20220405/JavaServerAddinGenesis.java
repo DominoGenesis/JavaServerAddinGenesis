@@ -62,7 +62,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 	
 	protected String getCoreVersion() {
-		return "0.2.4";
+		return "0.3.0";
 	}
 
 	protected String getQName() {
@@ -262,28 +262,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		}
 	}
 	
-	/*
-	private void executeJSON() {
-		File file = new File(this.m_javaAddinJSON);
-		if (!file.exists()) return;
-		
-		this.logMessage("setup.json - is going to be processed");
-
-		JSONRules action = new JSONRules(m_session, this);
-		try (Reader reader = new FileReader(this.m_javaAddinJSON)) {
-			action.execute(reader);
-			reader.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		file.delete();
-		this.logMessage("setup.json - processed (deleted)");
-	}
-	*/
-	
 	// file keeps getting updated while java addin works
 	private void updateLiveDateStamp() {
 		File f = new File(this.m_javaAddinLive);
@@ -351,6 +329,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * - remove program documents
 	 * - stop/unload this addin
 	 */
+	
 	private void uninstall() {
 		try {
 			String tagName = "GJA_" + this.getJavaAddinName();
