@@ -2,7 +2,9 @@
 Base class for all JavaAddins
 
 # Create jar
+```
 mvn package
+```
 
 # How to add local jar to maven locale storate
 
