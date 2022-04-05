@@ -24,23 +24,21 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	// MessageQueue Constants
 	// Message Queue name for this Addin (normally uppercase);
 	// MSG_Q_PREFIX is defined in JavaServerAddin.class
-	protected static final int 	MQ_MAX_MSGSIZE 			= 1024;
-	protected MessageQueue 		mq						= null;
-	protected Session 			m_session				= null;
-	protected Database			m_ab					= null;
-	protected String			m_javaAddinFolder		= null;
-	protected String			m_javaAddinCommand		= null;
-	protected String			m_javaAddinLive			= null;
-	protected String			m_javaAddinJSON			= null;
-	protected String[] 			args 					= null;
-	private int 				dominoTaskID			= 0;
+	protected static final int 		MQ_MAX_MSGSIZE 			= 1024;
+	protected MessageQueue 			mq						= null;
+	protected Session 				m_session				= null;
+	protected Database				m_ab					= null;
+	protected String				m_javaAddinFolder		= null;
+	protected String				m_javaAddinCommand		= null;
+	protected String				m_javaAddinLive			= null;
+	protected String[] 				args 					= null;
+	private int 					dominoTaskID			= 0;
 
-	protected final String 		JAVA_USER_CLASSES_EXT 	= "JavaUserClassesExt";
-	protected static final String JAVA_ADDIN_ROOT		= "JavaAddin";
-	protected static final String COMMAND_FILE_NAME		= "command.txt";
-	private static final String LIVE_FILE_NAME			= "live.txt";
-	private static final String JSON_FILE_NAME			= "setup.json";
-	private static final int 	LIVE_INTERVAL_MINUTES	= 1;
+	protected final String 			JAVA_USER_CLASSES_EXT 	= "JavaUserClassesExt";
+	protected static final String 	JAVA_ADDIN_ROOT			= "JavaAddin";
+	protected static final String 	COMMAND_FILE_NAME		= "command.txt";
+	private static final String 	LIVE_FILE_NAME			= "live.txt";
+	private static final int 		LIVE_INTERVAL_MINUTES	= 1;
 
 	// constructor if parameters are provided
 	public JavaServerAddinGenesis(String[] args) {
@@ -62,7 +60,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 	
 	protected String getCoreVersion() {
-		return "0.3.1";
+		return "2022.04.05";
 	}
 
 	protected String getQName() {
@@ -86,7 +84,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_javaAddinFolder = JAVA_ADDIN_ROOT + File.separator + this.getClass().getName();
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
-			m_javaAddinJSON = m_javaAddinFolder + File.separator + JSON_FILE_NAME;
 
 			// cleanup old command file if exists
 			File file = new File(m_javaAddinCommand);
@@ -135,14 +132,14 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		}		
 	}
 	
-	private void sendCommand(String command) {
-		File fileCommand = new File(this.m_javaAddinCommand);
-		writeFile(fileCommand, command);	
-	}
-	
+	/*
+	 * read command from the file (command.txt)
+	 */
 	protected String readCommand() {
-		File fileCommand = new File(this.m_javaAddinCommand);
-		return this.readFile(fileCommand);
+		File f = new File(this.m_javaAddinCommand);
+		if (!f.exists()) return "";
+		
+		return this.readFile(f);
 	}
 	
 	public void restartAll(boolean includeThisAddin) {
@@ -281,9 +278,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		else if ("info".equals(cmd)) {
 			showInfo();
 		}
-		else if ("uninstall".equals(cmd)) {
-			uninstall();
-		}
 		else if ("reload".equals(cmd)) {
 			reload();
 		}
@@ -304,7 +298,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		AddInLogMessageText("   quit             Unload addin");
 		AddInLogMessageText("   help             Show help information (or -h)");
 		AddInLogMessageText("   info             Show version and more of Genesis");
-//		AddInLogMessageText("   uninstall        Uninstall addin");
 
 		// in case if you need to extend help with other commands
 		showHelpExt();
@@ -314,6 +307,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		AddInLogMessageText("Copyright (C) Prominic.NET, Inc. 2021" + (year > 2021 ? " - " + Integer.toString(year) : ""));
 		AddInLogMessageText("See https://prominic.net for more details.");
 	}
+	
 	private void showInfo() {
 		logMessage("version      " + this.getJavaAddinVersion() + " (core: " + this.getCoreVersion() + ")");
 		logMessage("date         " + this.getJavaAddinDate());
@@ -321,45 +315,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 		// in case if you need to extend help with other commands
 		showInfoExt();
-	}
-
-	/*
-	 * Uninstall the add-in
-	 * - clean out notes.ini
-	 * - remove program documents
-	 * - stop/unload this addin
-	 */
-	
-	private void uninstall() {
-		try {
-			String tagName = "GJA_" + this.getJavaAddinName();
-
-			// addin tag list
-			String userClasses = m_session.getEnvironmentString(JAVA_USER_CLASSES_EXT, true);
-			if (userClasses.contains(tagName)) {
-				String replaceTagName = userClasses.contains("," + tagName) ?  "," + tagName : tagName;
-				userClasses = userClasses.replace(replaceTagName, "");
-				m_session.setEnvironmentVar(JAVA_USER_CLASSES_EXT, userClasses, true);
-			}
-
-			// tag name
-			String tagValue = m_session.getEnvironmentString(tagName, true);
-			if (!tagValue.isEmpty()) {
-				m_session.setEnvironmentVar(tagName, "", true);	
-			}
-
-			ProgramConfig pc = new ProgramConfig(this.getJavaAddinName(), this.args);
-			pc.delete(m_ab);
-
-			logMessage("uninstall - completed");
-
-			sendCommand("uninstall");
-			restartAll(false);
-
-			this.quit();
-		} catch (NotesException e) {
-			logMessage("Delete command failed: " + e.getMessage());
-		}
 	}
 
 	protected void quit() {
