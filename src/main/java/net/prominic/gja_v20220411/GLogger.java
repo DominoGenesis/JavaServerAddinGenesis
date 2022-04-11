@@ -63,7 +63,7 @@ public class GLogger {
 			SimpleDateFormat formatterFileName = new SimpleDateFormat("yyyy-MM");
 			String fileName = "log-" + formatterFileName.format(new Date()) + ".log";
 
-			File f = new File(getDirectory() + fileName);
+			File f = new File(getDirectory(), fileName);
 
 			FileWriter fw;
 			if (f.exists() && f.length() > 5 * ONE_MB) {
