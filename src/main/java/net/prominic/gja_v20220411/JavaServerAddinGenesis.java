@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -32,9 +31,9 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected String				m_javaAddinFolder		= null;
 	protected String				m_javaAddinCommand		= null;
 	protected String				m_javaAddinLive			= null;
+	protected GLogger				m_logger				= null;
 	protected String[] 				args 					= null;
 	private int 					dominoTaskID			= 0;
-	private GLogger					m_logger				= null;
 
 	protected final String 			JAVA_USER_CLASSES_EXT 	= "JavaUserClassesExt";
 	protected static final String 	JAVA_ADDIN_ROOT			= "JavaAddin";
@@ -87,7 +86,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
 
-			m_logger = new GLogger();
+			m_logger = new GLogger(m_javaAddinFolder);
 			
 			// cleanup old command file if exists
 			File file = new File(m_javaAddinCommand);
@@ -297,19 +296,19 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 	private void showHelp() {
 		logMessage("*** Usage ***");
-		AddInLogMessageText("load runjava " + this.getJavaAddinName());
-		AddInLogMessageText("tell " + this.getJavaAddinName() + " <command>");
-		AddInLogMessageText("   quit             Unload addin");
-		AddInLogMessageText("   help             Show help information (or -h)");
-		AddInLogMessageText("   info             Show version and more of Genesis");
+		logMessage("load runjava " + this.getJavaAddinName());
+		logMessage("tell " + this.getJavaAddinName() + " <command>");
+		logMessage("   quit             Unload addin");
+		logMessage("   help             Show help information (or -h)");
+		logMessage("   info             Show version and more of Genesis");
 
 		// in case if you need to extend help with other commands
 		showHelpExt();
 
 		// TODO: make it unique for each module
 		int year = Calendar.getInstance().get(Calendar.YEAR);
-		AddInLogMessageText("Copyright (C) Prominic.NET, Inc. 2021" + (year > 2021 ? " - " + Integer.toString(year) : ""));
-		AddInLogMessageText("See https://prominic.net for more details.");
+		logMessage("Copyright (C) Prominic.NET, Inc. 2021" + (year > 2021 ? " - " + Integer.toString(year) : ""));
+		logMessage("See https://prominic.net for more details.");
 	}
 	
 	private void showInfo() {
