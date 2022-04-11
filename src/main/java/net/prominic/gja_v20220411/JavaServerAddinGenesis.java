@@ -61,7 +61,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 	
 	protected String getCoreVersion() {
-		return "2022.04.11";
+		return "2022.04.11 (jre6)";
 	}
 
 	protected String getQName() {
@@ -191,15 +191,20 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		if (!file.exists()) return "";
 
 		StringBuilder contentBuilder = new StringBuilder();
-		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+
 			String sCurrentLine;
 			while ((sCurrentLine = br.readLine()) != null) {
 				contentBuilder.append(sCurrentLine);
 			}
+			
+			br.close();
 		} 
 		catch (IOException e) {
 			logSevere(e);
 		}
+		
 		return contentBuilder.toString();
 	}
 
