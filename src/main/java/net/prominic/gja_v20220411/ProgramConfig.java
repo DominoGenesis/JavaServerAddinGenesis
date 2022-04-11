@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220405;
+package net.prominic.gja_v20220411;
 
 import lotus.domino.Database;
 import lotus.domino.DateTime;
@@ -230,8 +230,9 @@ public class ProgramConfig {
 		return "2".equals(doc.getItemValueString("Enabled"));
 	}
 
-	private void log(String msg) {
-		System.out.println(m_addinName + " " + msg);
+	private void log(String message) {
+		GLogger.logInfo(message);
+		System.out.println(m_addinName + " " + message);
 	}
 
 }

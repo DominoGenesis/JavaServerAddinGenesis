@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220405;
+package net.prominic.gja_v20220411;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -60,7 +61,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 	
 	protected String getCoreVersion() {
-		return "2022.04.05";
+		return "2022.04.11";
 	}
 
 	protected String getQName() {
@@ -100,7 +101,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			
 			listen();
 		} catch(Exception e) {
-			e.printStackTrace();
+			logSevere(e);
 		}
 	}
 
@@ -178,9 +179,9 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			writer.println(cmd);
 			writer.close();
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			logSevere(e);
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			logSevere(e);
 		}
 	}
 
@@ -195,7 +196,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			}
 		} 
 		catch (IOException e) {
-			e.printStackTrace();
+			logSevere(e);
 		}
 		return contentBuilder.toString();
 	}
@@ -208,17 +209,17 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			mq = new MessageQueue();
 			int messageQueueState = mq.create(this.getQName(), 0, 0);	// use like MQCreate in API
 			if (messageQueueState == MessageQueue.ERR_DUPLICATE_MQ) {
-				logMessage(this.getJavaAddinName() + " task is already running");
+				logWarning(this.getJavaAddinName() + " task is already running");
 				return;
 			}
 
 			if (messageQueueState != MessageQueue.NOERROR) {
-				logMessage("Unable to create the Domino message queue");
+				logWarning("Unable to create the Domino message queue");
 				return;
 			}
 
 			if (mq.open(this.getQName(), 0) != MessageQueue.NOERROR) {
-				logMessage("Unable to open Domino message queue");
+				logWarning("Unable to open Domino message queue");
 				return;
 			}
 
@@ -250,12 +251,12 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 				// execute commands from file
 				String line = readCommand();
 				if (!line.isEmpty()) {
-					System.out.println(line);
+					logMessage(line);
 					resolveMessageQueueState(line);
 				}
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			logSevere(e);
 		}
 	}
 	
@@ -328,7 +329,45 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	message		Message to be displayed
 	 */
 	protected final void logMessage(String message) {
+		GLogger.logInfo(message);
 		AddInLogMessageText(this.getJavaAddinName() + ": " + message, 0);
+	}
+	
+	/**
+	 * Write a log message to the Domino console. The message string will be prefixed with the add-in name
+	 * followed by a column, e.g. <code>"AddinName: xxxxxxxx"</code>
+	 *
+	 * @param	message		Message to be displayed
+	 */
+	protected final void logWarning(String message) {
+		GLogger.logWarning(message);
+		AddInLogMessageText(this.getJavaAddinName() + ": (!!!) " + message, 0);
+	}
+	
+	/**
+	 * Write a log message to the Domino console. The message string will be prefixed with the add-in name
+	 * followed by a column, e.g. <code>"AddinName: xxxxxxxx"</code>
+	 *
+	 * @param	message		Message to be displayed
+	 */
+	protected final void logSevere(String message) {
+		GLogger.logSevere(message);
+		AddInLogMessageText(this.getJavaAddinName() + ": (###) " + message, 0);
+	}
+	
+	/**
+	 * Write a log message to the Domino console. The message string will be prefixed with the add-in name
+	 * followed by a column, e.g. <code>"AddinName: xxxxxxxx"</code>
+	 *
+	 * @param	message		Message to be displayed
+	 */
+	protected final void logSevere(Exception e) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		String message = sw.toString();
+		
+		logSevere(message);
 	}
 
 	/**
@@ -385,7 +424,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 			logMessage("UNLOADED (OK) " + this.getJavaAddinVersion());
 		} catch (NotesException e) {
-			logMessage("UNLOADED (**FAILED**) " + this.getJavaAddinVersion());
+			logSevere("UNLOADED (**FAILED**) " + this.getJavaAddinVersion());
 		}
 	}
 }
