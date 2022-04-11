@@ -34,6 +34,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected String				m_javaAddinLive			= null;
 	protected String[] 				args 					= null;
 	private int 					dominoTaskID			= 0;
+	private GLogger					m_logger				= null;
 
 	protected final String 			JAVA_USER_CLASSES_EXT 	= "JavaUserClassesExt";
 	protected static final String 	JAVA_ADDIN_ROOT			= "JavaAddin";
@@ -86,13 +87,15 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
 
+			m_logger = new GLogger();
+			
 			// cleanup old command file if exists
 			File file = new File(m_javaAddinCommand);
 			if (file.exists()) {
 				file.delete();
 			}
 
-			ProgramConfig pc = new ProgramConfig(this.getJavaAddinName(), this.args);
+			ProgramConfig pc = new ProgramConfig(this.getJavaAddinName(), this.args, m_logger);
 			pc.setState(m_ab, ProgramConfig.LOAD);		// set program documents in LOAD state
 
 			showInfo();
@@ -168,7 +171,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	public void reload() {
-		ProgramConfig pc = new ProgramConfig(this.getJavaAddinName(), this.args);
+		ProgramConfig pc = new ProgramConfig(this.getJavaAddinName(), this.args, m_logger);
 		pc.setState(m_ab, ProgramConfig.UNLOAD);		// set program documents in UNLOAD state
 		this.stopAddin();
 	}
@@ -329,7 +332,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	message		Message to be displayed
 	 */
 	protected final void logMessage(String message) {
-		GLogger.logInfo(message);
+		m_logger.info(message);
 		AddInLogMessageText(this.getJavaAddinName() + ": " + message, 0);
 	}
 	
@@ -340,8 +343,12 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	message		Message to be displayed
 	 */
 	protected final void logWarning(String message) {
-		GLogger.logWarning(message);
+		m_logger.severe(message);
 		AddInLogMessageText(this.getJavaAddinName() + ": (!!!) " + message, 0);
+	}
+	protected final void logWarning(Exception e) {
+		m_logger.warning(e);
+		e.printStackTrace();
 	}
 	
 	/**
@@ -351,7 +358,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	message		Message to be displayed
 	 */
 	protected final void logSevere(String message) {
-		GLogger.logSevere(message);
+		m_logger.severe(message);
 		AddInLogMessageText(this.getJavaAddinName() + ": (###) " + message, 0);
 	}
 	
@@ -362,12 +369,8 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	message		Message to be displayed
 	 */
 	protected final void logSevere(Exception e) {
-		StringWriter sw = new StringWriter();
-		PrintWriter pw = new PrintWriter(sw);
-		e.printStackTrace(pw);
-		String message = sw.toString();
-		
-		logSevere(message);
+		logSevere(e);
+		e.printStackTrace();
 	}
 
 	/**

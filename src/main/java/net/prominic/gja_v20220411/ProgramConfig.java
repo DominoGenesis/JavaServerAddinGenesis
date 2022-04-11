@@ -19,8 +19,9 @@ public class ProgramConfig {
 
 	private String m_addinName;
 	private String m_addinParams;
+	private GLogger m_logger;
 
-	public ProgramConfig(String addinName, String[] addinParamsArr) {
+	public ProgramConfig(String addinName, String[] addinParamsArr, GLogger logger) {
 		m_addinName = addinName;
 		m_addinParams = "";		
 		if (addinParamsArr != null && addinParamsArr.length > 0) {
@@ -29,6 +30,7 @@ public class ProgramConfig {
 				m_addinParams += addinParamsArr[i];
 			}
 		}
+		m_logger = logger;
 	}
 
 	/*
@@ -231,7 +233,7 @@ public class ProgramConfig {
 	}
 
 	private void log(String message) {
-		GLogger.logInfo(message);
+		m_logger.info(m_addinName + " " + message);
 		System.out.println(m_addinName + " " + message);
 	}
 

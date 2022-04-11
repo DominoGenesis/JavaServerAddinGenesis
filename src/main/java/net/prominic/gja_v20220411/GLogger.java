@@ -1,59 +1,124 @@
 package net.prominic.gja_v20220411;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class GLogger {
-	public static void log(String message, Level level) {
-		Logger logger = Logger.getLogger("GLog");
-		FileHandler fh;
+	public static int DEBUG = 0;
+	public static int INFO = 1;
+	public static int WARNING = 2;
+	public static int SEVERE = 3;
+	
+	long ONE_MB = 1048576;
+	int m_level = INFO;
+	
+	SimpleDateFormat m_formatter = new SimpleDateFormat("MM/dd/yyyy, HH:mm:ss");
+	String m_directory = "";
+
+	public GLogger() {
+	}
+	
+	public GLogger(String directory) {
+		setDirectory(directory);
+	}
+	
+	public void setLevel(int level) {
+		m_level = level;
+	}
+
+	public int getLevel() {
+		return m_level;
+	}
+
+	private void setDirectory(String directory) {
+		File dir = new File(directory);
+		if (!dir.exists()){
+			dir.mkdirs();
+		}
+
+		this.m_directory = directory;
+	}
+
+	public String getDirectory() {
+		return m_directory;
+	}
+
+	public String getLevelLabel() {
+		if (m_level == DEBUG) return "debug";
+		if (m_level == INFO) return "info";
+		if (m_level == WARNING) return "warning";
+		if (m_level == SEVERE) return "severe";
+		return "off";
+	}
+
+	private void writeToFile(String message, Throwable thrown, int level, String c) {
+		if (level < getLevel()) return;
 
 		try {
-			// This block configure the logger with handler and formatter
-			fh = new FileHandler("activity.log");
-			logger.addHandler(fh);
-			SimpleFormatter formatter = new SimpleFormatter();
-			fh.setFormatter(formatter);
+			SimpleDateFormat formatterFileName = new SimpleDateFormat("yyyy-MM");
+			String fileName = "log-" + formatterFileName.format(new Date()) + ".log";
 
-			// the following statement is used to log any messages
-			if (level == Level.INFO) {
-				logger.info(message); 
+			File f = new File(getDirectory() + fileName);
+
+			FileWriter fw;
+			if (f.exists() && f.length() > 5 * ONE_MB) {
+				fw = new FileWriter(f);
 			}
-			else if(level == Level.WARNING) {
-				logger.warning(message);
+			else {
+				fw = new FileWriter(f, true);
 			}
-			else if(level == Level.SEVERE) {
-				logger.severe(message);
+
+			PrintWriter out = new PrintWriter(new BufferedWriter(fw));
+
+			String logLine = c + m_formatter.format(new Date()) + " " + message;
+			out.println(logLine);
+
+			if (thrown != null) {
+				thrown.printStackTrace(out);
 			}
-		} catch (SecurityException e) {  
-			e.printStackTrace();  
-		} catch (IOException e) {  
-			e.printStackTrace();  
-		}  
+
+			out.close();
+			fw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
-	public static void logInfo(String message) {
-		log(message, Level.INFO);
+	public void debug(String message) {
+		writeToFile(message, null, DEBUG, "@");
 	}
 
-	public static void logWarning(String message) {
-		log(message, Level.WARNING);
+	public void info(String message) {
+		writeToFile(message, null, INFO, " ");
+	}
+
+	public void warning(String message) {
+		writeToFile(message, null, WARNING, "#");
 	}
 	
-	public static void logSevere(String message) {
-		log(message, Level.SEVERE);
+	public void warning(Exception e) {
+		String message = e.getLocalizedMessage();
+		if (message == null || message.isEmpty()) {
+			message = "an undefined exception was thrown";
+		}
+		writeToFile(message, e, WARNING, "#");
 	}
 	
-	public static void logSevere(Exception e) {
-		StringWriter sw = new StringWriter();
-		PrintWriter pw = new PrintWriter(sw);
-		e.printStackTrace(pw);
-
-		log(sw.toString(), Level.SEVERE);
+	public void severe(String message) {
+		writeToFile(message, null, 2, "!");
 	}
+
+	public void severe(Exception e) {
+		String message = e.getLocalizedMessage();
+		if (message == null || message.isEmpty()) {
+			message = "an undefined exception was thrown";
+		}
+		writeToFile(message, e, 2, "!");
+	}
+
 }
