@@ -343,7 +343,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 */
 	protected final void logWarning(String message) {
 		m_logger.severe(message);
-		AddInLogMessageText(this.getJavaAddinName() + ": (!!!) " + message, 0);
+		AddInLogErrorText(this.getJavaAddinName() + ": (!!!) " + message, 0);
 	}
 	protected final void logWarning(Exception e) {
 		m_logger.warning(e);
@@ -358,7 +358,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 */
 	protected final void logSevere(String message) {
 		m_logger.severe(message);
-		AddInLogMessageText(this.getJavaAddinName() + ": (###) " + message, 0);
+		AddInLogErrorText(this.getJavaAddinName() + ": (###) " + message, 0);
 	}
 	
 	/**
