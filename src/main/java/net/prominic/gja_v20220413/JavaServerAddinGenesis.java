@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220411;
+package net.prominic.gja_v20220413;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -55,13 +55,13 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected void runNotesBeforeInitialize() {}
 	protected void runNotesBeforeListen() {}
 	protected void termBeforeAB() {}
-	
+
 	protected String getJavaAddinName() {
 		return this.getClass().getName();
 	}
-	
+
 	protected String getCoreVersion() {
-		return "2022.04.11 (jre6)";
+		return "2022.04.13 (jre6)";
 	}
 
 	protected String getQName() {
@@ -85,9 +85,8 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_javaAddinFolder = JAVA_ADDIN_ROOT + File.separator + this.getClass().getName();
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
-
 			m_logger = new GLogger(m_javaAddinFolder);
-			
+
 			// cleanup old command file if exists
 			File file = new File(m_javaAddinCommand);
 			if (file.exists()) {
@@ -100,7 +99,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			showInfo();
 
 			runNotesBeforeListen();
-			
 			listen();
 		} catch(Exception e) {
 			logSevere(e);
@@ -134,17 +132,17 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			}
 		}		
 	}
-	
+
 	/*
 	 * read command from the file (command.txt)
 	 */
 	protected String readCommand() {
 		File f = new File(this.m_javaAddinCommand);
 		if (!f.exists()) return "";
-		
+
 		return this.readFile(f);
 	}
-	
+
 	public void restartAll(boolean includeThisAddin) {
 		sendCommandAll("reload", includeThisAddin);
 	}
@@ -198,13 +196,13 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			while ((sCurrentLine = br.readLine()) != null) {
 				contentBuilder.append(sCurrentLine);
 			}
-			
+
 			br.close();
 		} 
 		catch (IOException e) {
 			logSevere(e);
 		}
-		
+
 		return contentBuilder.toString();
 	}
 
@@ -242,7 +240,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 				if (this.AddInHasMinutesElapsed(LIVE_INTERVAL_MINUTES)) {
 					updateLiveDateStamp();
 				}
-				
+
 				// check for command from console
 				messageQueueState = mq.get(qBuffer, MQ_MAX_MSGSIZE, MessageQueue.MQ_WAIT_FOR_MSG, 1000);
 				if (messageQueueState == MessageQueue.ERR_MQ_QUITTING) {
@@ -266,7 +264,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			logSevere(e);
 		}
 	}
-	
+
 	// file keeps getting updated while java addin works
 	private void updateLiveDateStamp() {
 		File f = new File(this.m_javaAddinLive);
@@ -315,7 +313,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		logMessage("Copyright (C) Prominic.NET, Inc. 2021" + (year > 2021 ? " - " + Integer.toString(year) : ""));
 		logMessage("See https://prominic.net for more details.");
 	}
-	
+
 	private void showInfo() {
 		logMessage("version      " + this.getJavaAddinVersion() + " (core: " + this.getCoreVersion() + ")");
 		logMessage("date         " + this.getJavaAddinDate());
@@ -339,7 +337,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		m_logger.info(message);
 		AddInLogMessageText(this.getJavaAddinName() + ": " + message, 0);
 	}
-	
+
 	/**
 	 * Write a log message to the Domino console. The message string will be prefixed with the add-in name
 	 * followed by a column, e.g. <code>"AddinName: xxxxxxxx"</code>
@@ -354,7 +352,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		m_logger.warning(e);
 		e.printStackTrace();
 	}
-	
+
 	/**
 	 * Write a log message to the Domino console. The message string will be prefixed with the add-in name
 	 * followed by a column, e.g. <code>"AddinName: xxxxxxxx"</code>
@@ -365,7 +363,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		m_logger.severe(message);
 		AddInLogErrorText(this.getJavaAddinName() + ": (###) " + message, 0);
 	}
-	
+
 	/**
 	 * Write a log message to the Domino console. The message string will be prefixed with the add-in name
 	 * followed by a column, e.g. <code>"AddinName: xxxxxxxx"</code>
@@ -415,7 +413,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			AddInDeleteStatusLine(dominoTaskID);
 
 			termBeforeAB();
-			
+
 			if (this.m_ab != null) {
 				this.m_ab.recycle();
 				this.m_ab = null;
