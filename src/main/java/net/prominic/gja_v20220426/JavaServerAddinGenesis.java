@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220413;
+package net.prominic.gja_v20220426;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -61,7 +61,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.04.13 (jre6)";
+		return "2022.04.26 (logging)";
 	}
 
 	protected String getQName() {
@@ -371,7 +371,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	message		Message to be displayed
 	 */
 	protected final void logSevere(Exception e) {
-		logSevere(e);
+		m_logger.severe(e);
 		e.printStackTrace();
 	}
 
