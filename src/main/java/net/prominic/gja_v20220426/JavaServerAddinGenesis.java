@@ -61,7 +61,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.04.26 (logging)";
+		return "2022.04.26 - logging";
 	}
 
 	protected String getQName() {
