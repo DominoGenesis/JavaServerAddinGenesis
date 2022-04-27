@@ -307,6 +307,10 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 	
 	private void eventsFire() {
+		eventsFire(true);
+	}
+	
+	private void eventsFire(boolean resetTimer) {
 		for (int i = 0; i < m_events.size(); i++) {
 			Event event = m_events.get(i);
 			if (event.fire()) {
@@ -326,6 +330,10 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 					eventProc4();	
 				}
 			}
+		}
+		
+		if (resetTimer) {
+			eventsStart();	
 		}
 	}
 
