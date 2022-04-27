@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220426;
+package net.prominic.gja_v20220427;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,7 +41,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected static final String 	JAVA_ADDIN_ROOT			= "JavaAddin";
 	protected static final String 	COMMAND_FILE_NAME		= "command.txt";
 	private static final String 	LIVE_FILE_NAME			= "live.txt";
-	private static final int 		LIVE_INTERVAL_MINUTES	= 1;
 
 	// constructor if parameters are provided
 	public JavaServerAddinGenesis(String[] args) {
@@ -88,7 +87,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
 			m_logger = new GLogger(m_javaAddinFolder);
-			eventsAdd("LiveDateStamp", 600);
+			eventsAdd("LiveDateStamp", 60);
 			
 			// cleanup old command file if exists
 			File file = new File(m_javaAddinCommand);
@@ -209,7 +208,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		return contentBuilder.toString();
 	}
 
-	@SuppressWarnings("deprecation")
 	protected void listen() {
 		StringBuffer qBuffer = new StringBuffer(MQ_MAX_MSGSIZE);
 		
