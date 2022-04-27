@@ -28,6 +28,10 @@ public class Event {
 	
 	public boolean fire() {
 		Date now = new Date();
+		
+		System.out.println(now);
+		System.out.println(m_start);
+		
 		long seconds = (now.getTime()-m_start.getTime())/1000;
 		return seconds > m_intervalSeconds;
 	}

@@ -62,7 +62,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.04.26 - logging";
+		return "2022.04.26 - custom events";
 	}
 
 	protected String getQName() {
@@ -88,7 +88,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
 			m_logger = new GLogger(m_javaAddinFolder);
 			eventsAdd("LiveDateStamp", 60);
-			
+
 			// cleanup old command file if exists
 			File file = new File(m_javaAddinCommand);
 			if (file.exists()) {
@@ -210,7 +210,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 	protected void listen() {
 		StringBuffer qBuffer = new StringBuffer(MQ_MAX_MSGSIZE);
-		
+
 		try {
 			mq = new MessageQueue();
 			int messageQueueState = mq.create(this.getQName(), 0, 0);	// use like MQCreate in API
@@ -285,64 +285,55 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		for (int i = 0; i < m_events.size(); i++) {
 			Event event = m_events.get(i);
 			if (event.fireOnStart()) {
-				if (i==0) {
-					eventProc0();	
-				}
-				else if(i==1) {
-					eventProc1();	
-				}
-				else if(i==2) {
-					eventProc2();	
-				}
-				else if(i==3) {
-					eventProc3();	
-				}
-				else if(i==4) {
-					eventProc4();	
-				}
+				eventsProc(i);
 			}
 		}
 	}
-	
+
 	private void eventsFire() {
 		eventsFire(true);
 	}
-	
+
 	private void eventsFire(boolean resetTimer) {
 		for (int i = 0; i < m_events.size(); i++) {
 			Event event = m_events.get(i);
 			if (event.fire()) {
-				if (i==0) {
-					eventProc0();	
-				}
-				else if(i==1) {
-					eventProc1();	
-				}
-				else if(i==2) {
-					eventProc2();	
-				}
-				else if(i==3) {
-					eventProc3();	
-				}
-				else if(i==4) {
-					eventProc4();	
+				eventsProc(i);
+
+				if (resetTimer) {
+					event.start();
 				}
 			}
 		}
-		
-		if (resetTimer) {
-			eventsStart();	
+	}
+	
+	private void eventsProc(int i) {
+		if (i==0) {
+			eventProc0();	
+		}
+		else if(i==1) {
+			eventProc1();	
+		}
+		else if(i==2) {
+			eventProc2();	
+		}
+		else if(i==3) {
+			eventProc3();	
+		}
+		else if(i==4) {
+			eventProc4();	
 		}
 	}
 
 	private void eventProc0() {
+		logMessage("eventProc0 : updateLiveDateStamp");
 		updateLiveDateStamp();
 	}
 	private void eventProc1() {}
 	private void eventProc2() {}
 	private void eventProc3() {}
 	private void eventProc4() {}
-	
+
 	// file keeps getting updated while java addin works
 	private void updateLiveDateStamp() {
 		File f = new File(this.m_javaAddinLive);
