@@ -14,13 +14,14 @@ public class EventTimeLive extends Event {
 
 	@Override
 	public void run() {
-		System.out.println("RUN");
+		System.out.println(this.getClass().getName() + ": RUN");
 		if (!getParams().containsKey("filePath")) return;
 
 		String filePath = (String) getParams().get("filePath");
 		File f = new File(filePath);
 		long currentTime = System.currentTimeMillis();
 		writeFile(f, String.valueOf(currentTime));
+		System.out.println(this.getClass().getName() + ": COMPLETED");
 	}
 
 	private void writeFile(File file, String cmd) {
