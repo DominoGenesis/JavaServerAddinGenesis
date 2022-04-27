@@ -8,6 +8,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -34,6 +35,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected GLogger				m_logger				= null;
 	protected String[] 				args 					= null;
 	private int 					dominoTaskID			= 0;
+	private ArrayList<Event>		m_events				= null;
 
 	protected final String 			JAVA_USER_CLASSES_EXT 	= "JavaUserClassesExt";
 	protected static final String 	JAVA_ADDIN_ROOT			= "JavaAddin";
@@ -86,7 +88,8 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
 			m_logger = new GLogger(m_javaAddinFolder);
-
+			eventsAdd("LiveDateStamp", 600);
+			
 			// cleanup old command file if exists
 			File file = new File(m_javaAddinCommand);
 			if (file.exists()) {
@@ -209,7 +212,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	@SuppressWarnings("deprecation")
 	protected void listen() {
 		StringBuffer qBuffer = new StringBuffer(MQ_MAX_MSGSIZE);
-
+		
 		try {
 			mq = new MessageQueue();
 			int messageQueueState = mq.create(this.getQName(), 0, 0);	// use like MQCreate in API
@@ -228,18 +231,13 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 				return;
 			}
 
-			updateLiveDateStamp();
-
+			this.eventsFireOnStart();	// start events before loop
+			this.eventsStart();			// enable timer
 			while (this.addInRunning() && (messageQueueState != MessageQueue.ERR_MQ_QUITTING)) {
 				setAddinState("Idle");
 
 				/* gives control to other task in non preemptive os*/
 				OSPreemptOccasionally();
-
-				// every 10 mins we save status
-				if (this.AddInHasMinutesElapsed(LIVE_INTERVAL_MINUTES)) {
-					updateLiveDateStamp();
-				}
 
 				// check for command from console
 				messageQueueState = mq.get(qBuffer, MQ_MAX_MSGSIZE, MessageQueue.MQ_WAIT_FOR_MSG, 1000);
@@ -259,12 +257,86 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 					logMessage(line);
 					resolveMessageQueueState(line);
 				}
+
+				// check if we need to run events
+				eventsFire();
 			}
 		} catch(Exception e) {
 			logSevere(e);
 		}
 	}
 
+	protected void eventsAdd(String name, long seconds) {
+		if (this.m_events == null) {
+			this.m_events = new ArrayList<Event>();
+		}
+
+		Event event = new Event(name, seconds, true);
+		m_events.add(event);
+	}
+
+	private void eventsStart() {
+		if (this.m_events == null) return;
+
+		for (Event event: m_events) {
+			event.start();
+		}
+	}
+
+	private void eventsFireOnStart() {
+		for (int i = 0; i < m_events.size(); i++) {
+			Event event = m_events.get(i);
+			if (event.fireOnStart()) {
+				if (i==0) {
+					eventProc0();	
+				}
+				else if(i==1) {
+					eventProc1();	
+				}
+				else if(i==2) {
+					eventProc2();	
+				}
+				else if(i==3) {
+					eventProc3();	
+				}
+				else if(i==4) {
+					eventProc4();	
+				}
+			}
+		}
+	}
+	
+	private void eventsFire() {
+		for (int i = 0; i < m_events.size(); i++) {
+			Event event = m_events.get(i);
+			if (event.fire()) {
+				if (i==0) {
+					eventProc0();	
+				}
+				else if(i==1) {
+					eventProc1();	
+				}
+				else if(i==2) {
+					eventProc2();	
+				}
+				else if(i==3) {
+					eventProc3();	
+				}
+				else if(i==4) {
+					eventProc4();	
+				}
+			}
+		}
+	}
+
+	private void eventProc0() {
+		updateLiveDateStamp();
+	}
+	private void eventProc1() {}
+	private void eventProc2() {}
+	private void eventProc3() {}
+	private void eventProc4() {}
+	
 	// file keeps getting updated while java addin works
 	private void updateLiveDateStamp() {
 		File f = new File(this.m_javaAddinLive);
