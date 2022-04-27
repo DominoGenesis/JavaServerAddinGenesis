@@ -1,21 +1,36 @@
 package net.prominic.gja_v20220427;
 
 import java.util.Date;
+import java.util.HashMap;
 
-public class Event {
-	private String 	m_name;
-	private Date	m_start;			// date time of start
-	private long 	m_intervalSeconds;	// seconds
-	private boolean	m_fireOnStart;
+public abstract class Event {
+	private String 					m_name;
+	private Date					m_start;			// date time of start
+	private GLogger					m_logger;
+	private long 					m_intervalSeconds;	// seconds
+	private boolean					m_fireOnStart;
+	private HashMap<String, Object>	m_params;
 	
-	public Event(String name, long seconds, boolean fireOnStart) { 
+	public Event(String name, long seconds, boolean fireOnStart, HashMap<String, Object> params, GLogger logger) { 
 		m_name = name;
 		m_intervalSeconds = seconds;
 		m_fireOnStart = fireOnStart;
+		m_params = params;
+		m_logger = logger;
 	}
+	
+	public abstract void run();
 	
 	public String getName() {
 		return m_name;
+	}
+	
+	public GLogger getLogger() {
+		return m_logger;
+	}
+	
+	public HashMap<String, Object> getParams() {
+		return m_params;
 	}
 	
 	public void start() {
@@ -28,12 +43,7 @@ public class Event {
 	
 	public boolean fire() {
 		Date now = new Date();
-		
-		System.out.println(now);
-		System.out.println(m_start);
-		
 		long seconds = (now.getTime()-m_start.getTime())/1000;
 		return seconds > m_intervalSeconds;
-	}
-	
+	}	
 }

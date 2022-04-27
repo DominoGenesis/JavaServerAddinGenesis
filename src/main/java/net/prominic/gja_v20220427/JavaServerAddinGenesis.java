@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 import lotus.domino.Database;
 import lotus.domino.NotesException;
@@ -269,7 +270,9 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			this.m_events = new ArrayList<Event>();
 		}
 
-		Event event = new Event(name, seconds, true);
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("filePath", this.m_javaAddinLive);
+		Event event = new EventTimeLive(name, seconds, true, params, this.m_logger);
 		m_events.add(event);
 	}
 
@@ -285,7 +288,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		for (int i = 0; i < m_events.size(); i++) {
 			Event event = m_events.get(i);
 			if (event.fireOnStart()) {
-				eventsProc(i);
+				event.run();
 			}
 		}
 	}
@@ -298,8 +301,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		for (int i = 0; i < m_events.size(); i++) {
 			Event event = m_events.get(i);
 			if (event.fire()) {
-				eventsProc(i);
-
+				event.run();
 				if (resetTimer) {
 					event.start();
 				}
@@ -307,40 +309,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		}
 	}
 	
-	private void eventsProc(int i) {
-		if (i==0) {
-			eventProc0();	
-		}
-		else if(i==1) {
-			eventProc1();	
-		}
-		else if(i==2) {
-			eventProc2();	
-		}
-		else if(i==3) {
-			eventProc3();	
-		}
-		else if(i==4) {
-			eventProc4();	
-		}
-	}
-
-	private void eventProc0() {
-		logMessage("eventProc0 : updateLiveDateStamp");
-		updateLiveDateStamp();
-	}
-	private void eventProc1() {}
-	private void eventProc2() {}
-	private void eventProc3() {}
-	private void eventProc4() {}
-
-	// file keeps getting updated while java addin works
-	private void updateLiveDateStamp() {
-		File f = new File(this.m_javaAddinLive);
-		long currentTime = System.currentTimeMillis();
-		writeFile(f, String.valueOf(currentTime));
-	}
-
 	protected boolean resolveMessageQueueState(String cmd) {
 		boolean flag = true;
 
