@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220427;
+package net.prominic.gja_v20220502;
 
 import lotus.domino.Database;
 import lotus.domino.DateTime;

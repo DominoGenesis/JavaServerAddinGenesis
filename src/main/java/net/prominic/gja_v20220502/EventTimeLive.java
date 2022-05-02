@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220427;
+package net.prominic.gja_v20220502;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,14 +14,12 @@ public class EventTimeLive extends Event {
 
 	@Override
 	public void run() {
-		System.out.println(this.getClass().getName() + ": RUN");
 		if (!getParams().containsKey("filePath")) return;
 
 		String filePath = (String) getParams().get("filePath");
 		File f = new File(filePath);
 		long currentTime = System.currentTimeMillis();
 		writeFile(f, String.valueOf(currentTime));
-		System.out.println(this.getClass().getName() + ": COMPLETED");
 	}
 
 	private void writeFile(File file, String cmd) {

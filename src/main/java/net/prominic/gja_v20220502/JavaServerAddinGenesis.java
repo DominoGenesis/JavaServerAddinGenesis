@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220427;
+package net.prominic.gja_v20220502;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -88,7 +88,12 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
 			m_logger = new GLogger(m_javaAddinFolder);
-			eventsAdd("LiveDateStamp", 60);
+			
+			// add main event
+			HashMap<String, Object> params = new HashMap<String, Object>();
+			params.put("filePath", this.m_javaAddinLive);
+			Event event = new EventTimeLive("LiveDateStamp", 60, true, params, this.m_logger);
+			eventsAdd(event);
 
 			// cleanup old command file if exists
 			File file = new File(m_javaAddinCommand);
@@ -265,14 +270,10 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		}
 	}
 
-	protected void eventsAdd(String name, long seconds) {
+	protected void eventsAdd(Event event) {
 		if (this.m_events == null) {
 			this.m_events = new ArrayList<Event>();
 		}
-
-		HashMap<String, Object> params = new HashMap<String, Object>();
-		params.put("filePath", this.m_javaAddinLive);
-		Event event = new EventTimeLive(name, seconds, true, params, this.m_logger);
 		m_events.add(event);
 	}
 
