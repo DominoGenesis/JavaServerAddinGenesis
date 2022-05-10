@@ -55,7 +55,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected abstract String getJavaAddinDate();
 	protected void showHelpExt() {}
 	protected void showInfoExt() {}
-	protected boolean runNotesBeforeInitialize() {return true;}
+	protected boolean runNotesAfterInitialize() {return true;}
 	protected void runNotesBeforeListen() {}
 	protected void termBeforeAB() {}
 
@@ -81,15 +81,15 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		this.dominoTaskID = createAddinStatusLine(this.getJavaAddinName());
 
 		try {
-			boolean next = runNotesBeforeInitialize();
-			if (!next) return;
-
+			m_javaAddinFolder = JAVA_ADDIN_ROOT + File.separator + this.getClass().getName();
+			m_logger = new GLogger(m_javaAddinFolder);
 			m_session = NotesFactory.createSession();
 			m_ab = m_session.getDatabase(m_session.getServerName(), "names.nsf");
-			m_javaAddinFolder = JAVA_ADDIN_ROOT + File.separator + this.getClass().getName();
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
-			m_logger = new GLogger(m_javaAddinFolder);
+
+			boolean next = runNotesAfterInitialize();
+			if (!next) return;
 			
 			// add main event
 			HashMap<String, Object> params = new HashMap<String, Object>();
@@ -272,7 +272,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		}
 	}
 	
-	private void listenAfterWhile() {
+	protected void listenAfterWhile() {
 		setAddinState("Idle");		
 	}
 
@@ -378,7 +378,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	message		Message to be displayed
 	 */
 	protected final void logMessage(String message) {
-		m_logger.info(message);
+		if (m_logger != null) m_logger.info(message);
 		AddInLogMessageText(this.getJavaAddinName() + ": " + message, 0);
 	}
 
@@ -389,11 +389,11 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	message		Message to be displayed
 	 */
 	protected final void logWarning(String message) {
-		m_logger.severe(message);
+		if (m_logger != null) m_logger.severe(message);
 		AddInLogErrorText(this.getJavaAddinName() + ": (!!!) " + message, 0);
 	}
 	protected final void logWarning(Exception e) {
-		m_logger.warning(e);
+		if (m_logger != null) m_logger.warning(e);
 		e.printStackTrace();
 	}
 
@@ -404,7 +404,8 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	message		Message to be displayed
 	 */
 	protected final void logSevere(String message) {
-		m_logger.severe(message);
+		if (m_logger != null) m_logger.severe(message);
+
 		AddInLogErrorText(this.getJavaAddinName() + ": (###) " + message, 0);
 	}
 
@@ -415,7 +416,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @param	message		Message to be displayed
 	 */
 	protected final void logSevere(Exception e) {
-		m_logger.severe(e);
+		if (m_logger != null) m_logger.severe(e);	
 		e.printStackTrace();
 	}
 
