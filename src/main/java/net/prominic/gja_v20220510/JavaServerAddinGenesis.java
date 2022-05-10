@@ -1,6 +1,7 @@
-package net.prominic.gja_v20220502;
+package net.prominic.gja_v20220510;
 
 import java.io.BufferedReader;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -54,7 +55,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected abstract String getJavaAddinDate();
 	protected void showHelpExt() {}
 	protected void showInfoExt() {}
-	protected void runNotesBeforeInitialize() {}
+	protected boolean runNotesBeforeInitialize() {return true;}
 	protected void runNotesBeforeListen() {}
 	protected void termBeforeAB() {}
 
@@ -63,7 +64,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.04.26 - custom events";
+		return "2022.05.10";
 	}
 
 	protected String getQName() {
@@ -80,7 +81,8 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		this.dominoTaskID = createAddinStatusLine(this.getJavaAddinName());
 
 		try {
-			runNotesBeforeInitialize();
+			boolean next = runNotesBeforeInitialize();
+			if (!next) return;
 
 			m_session = NotesFactory.createSession();
 			m_ab = m_session.getDatabase(m_session.getServerName(), "names.nsf");
@@ -238,7 +240,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			this.eventsFireOnStart();	// start events before loop
 			this.eventsStart();			// enable timer
 			while (this.addInRunning() && (messageQueueState != MessageQueue.ERR_MQ_QUITTING)) {
-				setAddinState("Idle");
+				listenAfterWhile();
 
 				/* gives control to other task in non preemptive os*/
 				OSPreemptOccasionally();
@@ -268,6 +270,10 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		} catch(Exception e) {
 			logSevere(e);
 		}
+	}
+	
+	private void listenAfterWhile() {
+		setAddinState("Idle");		
 	}
 
 	protected void eventsAdd(Event event) {
@@ -438,6 +444,8 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 	@Override
 	public void termThread() {
+		logMessage("MainThread: termThread");
+		
 		terminate();
 
 		super.termThread();
@@ -470,4 +478,45 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			logSevere("UNLOADED (**FAILED**) " + this.getJavaAddinVersion());
 		}
 	}
+
+	/*
+	 * Clean old jar and log files
+	 * We keep last 5 jar files and last 5 log files
+	 */
+	/*
+	public void cleanOutdatedFiles(String ext) {
+		try {
+			File dir = new File("DominoMeterAddin");
+			if (!dir.isDirectory()) return;
+
+			File files[] = FileUtils.endsWith(dir, ext);
+			if (files.length <= 5) return;
+
+			int count = 0;
+			StringBuffer deletedFiles = new StringBuffer();
+			files = FileUtils.sortFilesByModified(files, false);
+			for (int i = 5; i < files.length; i++) {
+				File file = files[i];
+				if (!file.getName().equalsIgnoreCase(version)) {
+					file.delete();
+					if (count > 0) deletedFiles.append(", ");
+					deletedFiles.append(file.getName());
+					count++;
+				}
+			}
+
+			if (count>0) {
+				fileLogger.info("Removed files (" + Integer.toString(count) + "): " + deletedFiles.toString());
+				Log.sendLog(server, endpoint, "Removed files (" + Integer.toString(count) + ")", deletedFiles.toString());
+			}
+
+		} catch (Exception e) {
+			incrementExceptionTotal();
+			fileLogger.severe(e);
+			Log.sendError(server, endpoint, new ParsedError(e));
+			e.printStackTrace();
+		}
+	}
+	*/
+
 }
