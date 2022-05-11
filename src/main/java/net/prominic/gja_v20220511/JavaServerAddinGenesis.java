@@ -1,7 +1,6 @@
-package net.prominic.gja_v20220510;
+package net.prominic.gja_v20220511;
 
 import java.io.BufferedReader;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -14,7 +13,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-
 import lotus.domino.Database;
 import lotus.domino.NotesException;
 import lotus.domino.NotesFactory;
@@ -64,7 +62,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.05.10";
+		return "2022.05.11";
 	}
 
 	protected String getQName() {
@@ -92,11 +90,16 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			if (!next) return;
 			
 			// add main event
-			HashMap<String, Object> params = new HashMap<String, Object>();
-			params.put("filePath", this.m_javaAddinLive);
-			Event event = new EventTimeLive("LiveDateStamp", 60, true, params, this.m_logger);
+			HashMap<String, Object> paramsMain = new HashMap<String, Object>();
+			paramsMain.put("filePath", this.m_javaAddinLive);
+			Event event = new EventTimeLive("LiveDateStamp", 60, true, paramsMain, this.m_logger);
 			eventsAdd(event);
 
+			// Clean logs
+			long monthInSeconds = 30 * 86400;
+			Event eventCleaner = new EventLogCleaner("LogCleaner", monthInSeconds, true, null, this.m_logger);
+			eventsAdd(eventCleaner);
+			
 			// cleanup old command file if exists
 			File file = new File(m_javaAddinCommand);
 			if (file.exists()) {
@@ -115,6 +118,10 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		}
 	}
 
+	protected String getJavaAddinFolder() {
+		return this.m_javaAddinFolder;
+	}
+	
 	protected String[] getAllAddin() {
 		File file = new File(JAVA_ADDIN_ROOT);
 		String[] directories = file.list(new FilenameFilter() {
@@ -328,6 +335,9 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		else if ("info".equals(cmd)) {
 			showInfo();
 		}
+		else if ("fire".equals(cmd)) {
+			eventsFire();
+		}
 		else if ("reload".equals(cmd)) {
 			reload();
 		}
@@ -348,11 +358,10 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		logMessage("   quit             Unload addin");
 		logMessage("   help             Show help information (or -h)");
 		logMessage("   info             Show version and more of Genesis");
-
+		
 		// in case if you need to extend help with other commands
 		showHelpExt();
 
-		// TODO: make it unique for each module
 		int year = Calendar.getInstance().get(Calendar.YEAR);
 		logMessage("Copyright (C) Prominic.NET, Inc. 2021" + (year > 2021 ? " - " + Integer.toString(year) : ""));
 		logMessage("See https://prominic.net for more details.");
