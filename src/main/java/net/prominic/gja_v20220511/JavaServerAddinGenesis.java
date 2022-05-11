@@ -323,6 +323,12 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		}
 	}
 	
+	private void eventsFireForce() {
+		for (Event event: m_events) {
+			event.run();
+		}
+	}
+	
 	protected boolean resolveMessageQueueState(String cmd) {
 		boolean flag = true;
 
@@ -336,7 +342,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			showInfo();
 		}
 		else if ("fire".equals(cmd)) {
-			eventsFire();
+			eventsFireForce();
 		}
 		else if ("reload".equals(cmd)) {
 			reload();
@@ -351,7 +357,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		return flag;
 	}
 
-	private void showHelp() {
+	protected void showHelp() {
 		logMessage("*** Usage ***");
 		logMessage("load runjava " + this.getJavaAddinName());
 		logMessage("tell " + this.getJavaAddinName() + " <command>");

@@ -11,7 +11,6 @@ public class EventLogCleaner extends Event {
 
 	@Override
 	public void run() {
-		System.out.println(this.getName() + " - run");
 		cleanOutdatedFiles(".log");
 	}
 
