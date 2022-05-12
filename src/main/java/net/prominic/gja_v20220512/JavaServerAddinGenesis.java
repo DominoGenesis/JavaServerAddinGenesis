@@ -96,8 +96,8 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			if (!next) return;
 			
 			// add main event
-			Event event = new EventTimeLive("LiveDateStamp", 60, true, this.m_logger);
-			event.addParam("filePath", this.m_javaAddinLive);
+			EventTimeLive event = new EventTimeLive("LiveDateStamp", 60, true, this.m_logger);
+			event.FilePath = this.m_javaAddinLive;
 			eventsAdd(event);
 
 			// Clean logs
