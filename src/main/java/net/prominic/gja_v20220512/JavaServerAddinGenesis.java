@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220511;
+package net.prominic.gja_v20220512;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import lotus.domino.Database;
 import lotus.domino.NotesException;
 import lotus.domino.NotesFactory;
@@ -53,7 +52,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected abstract String getJavaAddinDate();
 	protected void showHelpExt() {}
 	protected void showInfoExt() {}
-	protected boolean runNotesAfterInitialize() {return true;}
+	private boolean runNotesInitialize() {return false;}
 	protected void runNotesBeforeListen() {}
 	protected void termBeforeAB() {}
 
@@ -62,16 +61,23 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.05.11";
+		return "2022.05.12";
 	}
 
 	protected String getQName() {
 		return MSG_Q_PREFIX + getJavaAddinName().toUpperCase();
 	}
+	
+	/*
+	 * Used for validation & initialization
+	 */
+	protected boolean runNotesAfterInitialize() {return true;}
 
 	/* the runNotes method, which is the main loop of the Addin */
 	@Override
 	public void runNotes() {
+		if(!runNotesInitialize()) return;
+		
 		// Set the Java thread name to the class name (default would be "Thread-n")
 		this.setName(this.getJavaAddinName());
 
@@ -90,14 +96,13 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			if (!next) return;
 			
 			// add main event
-			HashMap<String, Object> paramsMain = new HashMap<String, Object>();
-			paramsMain.put("filePath", this.m_javaAddinLive);
-			Event event = new EventTimeLive("LiveDateStamp", 60, true, paramsMain, this.m_logger);
+			Event event = new EventTimeLive("LiveDateStamp", 60, true, this.m_logger);
+			event.addParam("filePath", this.m_javaAddinLive);
 			eventsAdd(event);
 
 			// Clean logs
 			long monthInSeconds = 30 * 86400;
-			Event eventCleaner = new EventLogCleaner("LogCleaner", monthInSeconds, true, null, this.m_logger);
+			Event eventCleaner = new EventLogCleaner("LogCleaner", monthInSeconds, true, this.m_logger);
 			eventsAdd(eventCleaner);
 			
 			// cleanup old command file if exists

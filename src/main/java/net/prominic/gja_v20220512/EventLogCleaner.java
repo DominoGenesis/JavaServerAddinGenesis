@@ -1,12 +1,12 @@
-package net.prominic.gja_v20220511;
+package net.prominic.gja_v20220512;
 import java.io.File;
 import java.util.HashMap;
 
 import net.prominic.util.FileUtils;
 
 public class EventLogCleaner extends Event {
-	public EventLogCleaner(String name, long seconds, boolean fireOnStart, HashMap<String, Object> params, GLogger logger) {
-		super(name, seconds, fireOnStart, params, logger);
+	public EventLogCleaner(String name, long seconds, boolean fireOnStart, GLogger logger) {
+		super(name, seconds, fireOnStart, logger);
 	}
 
 	@Override
@@ -15,8 +15,7 @@ public class EventLogCleaner extends Event {
 	}
 
 	/*
-	 * Clean old jar and log files
-	 * We keep last 5 jar files and last 5 log files
+	 * Clean old log files
 	 */
 	public void cleanOutdatedFiles(String ext) {
 		try {

@@ -2,9 +2,12 @@ package net.prominic.util;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -129,5 +132,20 @@ public class FileUtils {
 		}
 
 		return files;
+	}
+
+	/*
+	 * Write string to file
+	 */
+	public static void writeFile(File file, String cmd) {
+		try {
+			PrintWriter writer = new PrintWriter(file, "UTF-8");
+			writer.println(cmd);
+			writer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 	}
 }
