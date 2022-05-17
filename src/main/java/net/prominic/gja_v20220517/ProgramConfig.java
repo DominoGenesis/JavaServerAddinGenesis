@@ -132,6 +132,39 @@ public class ProgramConfig {
 		return false;
 	}
 	
+	/*
+	 * Disable related program documents
+	 */
+	public boolean disable(Database database) {
+		try {
+			String server = database.getServer();
+			View view = database.getView("($Programs)");
+			DocumentCollection col = view.getAllDocumentsByKey(server, true);
+
+			Document doc = col.getFirstDocument();
+			while (doc != null) {
+				Document nextDoc = col.getNextDocument(doc);
+
+				if (!"0".equals(doc.getItemValueString("Enabled"))) {
+					doc.replaceItemValue("Enabled", "0");
+					log("program document disabled");	
+				}
+
+				doc.recycle();
+				doc = nextDoc;
+			}
+
+			col.recycle();
+			view.recycle();
+
+			return true;
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+
+		return false;
+	}
+	
 	private void deleteDuplicate(Document doc) throws NotesException {
 		doc.remove(true);
 		log("program document deleted (duplicate)");
