@@ -1,23 +1,20 @@
-package net.prominic.gja_v20220512;
+package net.prominic.gja_v20220517;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+
 import lotus.domino.Database;
 import lotus.domino.NotesException;
 import lotus.domino.NotesFactory;
 import lotus.domino.Session;
 import lotus.notes.addins.JavaServerAddin;
 import lotus.notes.internal.MessageQueue;
+import net.prominic.util.FileUtils;
 
 public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
@@ -35,6 +32,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected String[] 				args 					= null;
 	private int 					dominoTaskID			= 0;
 	private ArrayList<Event>		m_events				= null;
+	private String 					m_startDateTime			= "";
 
 	protected final String 			JAVA_USER_CLASSES_EXT 	= "JavaUserClassesExt";
 	protected static final String 	JAVA_ADDIN_ROOT			= "JavaAddin";
@@ -52,7 +50,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected abstract String getJavaAddinDate();
 	protected void showHelpExt() {}
 	protected void showInfoExt() {}
-	private boolean runNotesInitialize() {return false;}
 	protected void runNotesBeforeListen() {}
 	protected void termBeforeAB() {}
 
@@ -61,29 +58,37 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.05.12";
+		return "2022.05.17";
 	}
 
 	protected String getQName() {
 		return MSG_Q_PREFIX + getJavaAddinName().toUpperCase();
 	}
-	
+
+	/*
+	 * Used for initialization
+	 */
+	private boolean runNotesInitialize() {
+		return true;
+	}
+
 	/*
 	 * Used for validation & initialization
 	 */
-	protected boolean runNotesAfterInitialize() {return true;}
+	protected boolean runNotesAfterInitialize() {
+		return true;
+	}
 
 	/* the runNotes method, which is the main loop of the Addin */
 	@Override
 	public void runNotes() {
-		if(!runNotesInitialize()) return;
+		boolean initialize = runNotesInitialize();
+		if(!initialize) return;
 		
 		// Set the Java thread name to the class name (default would be "Thread-n")
 		this.setName(this.getJavaAddinName());
-
 		// Create the status line showed in 'Show Task' console command
 		this.dominoTaskID = createAddinStatusLine(this.getJavaAddinName());
-
 		try {
 			m_javaAddinFolder = JAVA_ADDIN_ROOT + File.separator + this.getClass().getName();
 			m_logger = new GLogger(m_javaAddinFolder);
@@ -91,6 +96,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_ab = m_session.getDatabase(m_session.getServerName(), "names.nsf");
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
+			m_startDateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
 
 			boolean next = runNotesAfterInitialize();
 			if (!next) return;
@@ -149,7 +155,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 				String javaAddin = JAVA_ADDIN_ROOT + File.separator + directories[i];
 				if (isLive(javaAddin)) {
 					File fileCommand = new File(javaAddin + File.separator + COMMAND_FILE_NAME);
-					writeFile(fileCommand, command);	
+					FileUtils.writeFile(fileCommand, command);	
 				}
 			}
 		}		
@@ -162,7 +168,8 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		File f = new File(this.m_javaAddinCommand);
 		if (!f.exists()) return "";
 
-		return this.readFile(f);
+		String cmd = FileUtils.readFile(f);
+		return cmd;
 	}
 
 	public void restartAll(boolean includeThisAddin) {
@@ -173,7 +180,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		File f = new File(javaAddin + File.separator + LIVE_FILE_NAME);
 		if (!f.exists()) return false;
 
-		String sTimeStamp = readFile(f);
+		String sTimeStamp = FileUtils.readFile(f);
 		if (sTimeStamp.length() == 0) return false;
 
 		// last live date
@@ -193,39 +200,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		ProgramConfig pc = new ProgramConfig(this.getJavaAddinName(), this.args, m_logger);
 		pc.setState(m_ab, ProgramConfig.UNLOAD);		// set program documents in UNLOAD state
 		this.stopAddin();
-	}
-
-	private void writeFile(File file, String cmd) {
-		try {
-			PrintWriter writer = new PrintWriter(file, "UTF-8");
-			writer.println(cmd);
-			writer.close();
-		} catch (FileNotFoundException e) {
-			logSevere(e);
-		} catch (UnsupportedEncodingException e) {
-			logSevere(e);
-		}
-	}
-
-	protected String readFile(File file) {
-		if (!file.exists()) return "";
-
-		StringBuilder contentBuilder = new StringBuilder();
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(file));
-
-			String sCurrentLine;
-			while ((sCurrentLine = br.readLine()) != null) {
-				contentBuilder.append(sCurrentLine);
-			}
-
-			br.close();
-		} 
-		catch (IOException e) {
-			logSevere(e);
-		}
-
-		return contentBuilder.toString();
 	}
 
 	protected void listen() {
@@ -379,14 +353,18 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	private void showInfo() {
-		logMessage("version      " + this.getJavaAddinVersion() + " (core: " + this.getCoreVersion() + ")");
-		logMessage("date         " + this.getJavaAddinDate());
+		logMessage("version      " + getJavaAddinVersion() + " (core: " + this.getCoreVersion() + ")");
+		logMessage("date         " + getJavaAddinDate());
 		logMessage("parameters   " + Arrays.toString(this.args));
+		logMessage("log folder   " + m_logger.getDirectory());
+		logMessage("logging      " + m_logger.getLevelLabel());
+		logMessage("started      " + m_startDateTime);
+
 
 		// in case if you need to extend help with other commands
 		showInfoExt();
 	}
-
+	
 	protected void quit() {
 		this.stopAddin();
 	}

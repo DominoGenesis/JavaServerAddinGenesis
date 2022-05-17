@@ -148,4 +148,26 @@ public class FileUtils {
 			e.printStackTrace();
 		}
 	}
+	
+	public static String readFile(File file) {
+		if (!file.exists()) return "";
+
+		StringBuilder contentBuilder = new StringBuilder();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+
+			String sCurrentLine;
+			while ((sCurrentLine = br.readLine()) != null) {
+				contentBuilder.append(sCurrentLine);
+			}
+
+			br.close();
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return contentBuilder.toString();
+	}
+
 }
