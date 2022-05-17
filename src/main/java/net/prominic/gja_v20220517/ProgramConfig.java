@@ -101,38 +101,6 @@ public class ProgramConfig {
 	}
 
 	/*
-	 * Delete related program documents
-	 */
-	public boolean delete(Database database) {
-		try {
-			String server = database.getServer();
-			View view = database.getView("($Programs)");
-			DocumentCollection col = view.getAllDocumentsByKey(server, true);
-
-			Document doc = col.getFirstDocument();
-			while (doc != null) {
-				Document nextDoc = col.getNextDocument(doc);
-
-				if (isAddinDoc(doc)) {
-					doc.remove(true);
-					log("program document deleted");
-				}
-
-				doc = nextDoc;
-			}
-
-			col.recycle();
-			view.recycle();
-
-			return true;
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-
-		return false;
-	}
-	
-	/*
 	 * Disable related program documents
 	 */
 	public boolean disable(Database database) {
@@ -145,8 +113,9 @@ public class ProgramConfig {
 			while (doc != null) {
 				Document nextDoc = col.getNextDocument(doc);
 
-				if (!"0".equals(doc.getItemValueString("Enabled"))) {
+				if (isAddinDoc(doc) && !"0".equals(doc.getItemValueString("Enabled"))) {
 					doc.replaceItemValue("Enabled", "0");
+					doc.save();
 					log("program document disabled");	
 				}
 
