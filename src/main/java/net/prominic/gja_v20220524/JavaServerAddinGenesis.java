@@ -191,10 +191,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			BufferedReader br = new BufferedReader(new FileReader(f));
 			String st;
 			while ((st = br.readLine()) != null) {
-				System.out.println(st);
-				System.out.println(st.startsWith(name));
-				System.out.println(st.startsWith(name + "="));
-
 				if (st.startsWith(name + "=")) {
 					res = st.substring(st.indexOf("=")+1);
 				}
