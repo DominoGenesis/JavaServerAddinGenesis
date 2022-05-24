@@ -1,7 +1,10 @@
-package net.prominic.gja_v20220517;
+package net.prominic.gja_v20220524;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +31,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected String				m_javaAddinFolder		= null;
 	protected String				m_javaAddinCommand		= null;
 	protected String				m_javaAddinLive			= null;
+	protected String				m_javaAddinConfig		= null;
 	protected GLogger				m_logger				= null;
 	protected String[] 				args 					= null;
 	private int 					dominoTaskID			= 0;
@@ -38,7 +42,8 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected static final String 	JAVA_ADDIN_ROOT			= "JavaAddin";
 	protected static final String 	COMMAND_FILE_NAME		= "command.txt";
 	private static final String 	LIVE_FILE_NAME			= "live.txt";
-
+	protected static final String 	CONFIG_FILE_NAME		= "config.txt";
+	
 	// constructor if parameters are provided
 	public JavaServerAddinGenesis(String[] args) {
 		this.args = args;
@@ -58,7 +63,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.05.17";
+		return "2022.05.24";
 	}
 
 	protected String getQName() {
@@ -96,6 +101,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_ab = m_session.getDatabase(m_session.getServerName(), "names.nsf");
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
+			m_javaAddinConfig = m_javaAddinFolder + File.separator + CONFIG_FILE_NAME;
 			m_startDateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
 
 			boolean next = runNotesAfterInitialize();
@@ -121,7 +127,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			pc.setState(m_ab, ProgramConfig.LOAD);		// set program documents in LOAD state
 
 			showInfo();
-
+			
 			runNotesBeforeListen();
 			listen();
 		} catch(Exception e) {
@@ -133,7 +139,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		return this.m_javaAddinFolder;
 	}
 	
-	protected String[] getAllAddin() {
+	public String[] getAllAddin() {
 		File file = new File(JAVA_ADDIN_ROOT);
 		String[] directories = file.list(new FilenameFilter() {
 			@Override
@@ -176,6 +182,30 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		sendCommandAll("reload", includeThisAddin);
 	}
 
+	protected String getConfigValueString(String name) {
+		File f = new File(m_javaAddinConfig);
+		if (!f.exists()) return null;
+
+		String res = null;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(f));
+			String st;
+			while ((st = br.readLine()) != null) {
+				System.out.println(st);
+				System.out.println(st.startsWith(name));
+				System.out.println(st.startsWith(name + "="));
+
+				if (st.startsWith(name + "=")) {
+					res = st.substring(st.indexOf("=")+1);
+				}
+			}
+			br.close();
+		}
+		catch (IOException e) {}
+
+		return res;
+	}
+	
 	protected boolean isLive(String javaAddin) {
 		File f = new File(javaAddin + File.separator + LIVE_FILE_NAME);
 		if (!f.exists()) return false;
@@ -195,7 +225,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 		return c1.after(c2);
 	}
-
+	
 	public void reload() {
 		ProgramConfig pc = new ProgramConfig(this.getJavaAddinName(), this.args, m_logger);
 		pc.setState(m_ab, ProgramConfig.UNLOAD);		// set program documents in UNLOAD state
