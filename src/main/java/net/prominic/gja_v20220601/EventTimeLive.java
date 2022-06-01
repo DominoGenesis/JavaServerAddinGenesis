@@ -16,8 +16,6 @@ public class EventTimeLive extends Event {
 		if (FilePath == null) return;
 
 		File f = new File(FilePath);
-		if (!f.exists()) return;
-		
 		long currentTime = System.currentTimeMillis();
 		FileUtils.writeFile(f, String.valueOf(currentTime));
 	}
