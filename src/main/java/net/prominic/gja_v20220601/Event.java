@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220524;
+package net.prominic.gja_v20220601;
 
 import java.util.Date;
 

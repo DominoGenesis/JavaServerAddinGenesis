@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220524;
+package net.prominic.gja_v20220601;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -63,7 +63,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.05.24";
+		return "2022.06.01";
 	}
 
 	protected String getQName() {
