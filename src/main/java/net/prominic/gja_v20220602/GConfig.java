@@ -9,7 +9,7 @@ import java.io.OutputStream;
 import java.util.Properties;
 
 public class GConfig {
-	protected static String get(String filePath, String name) {
+	public static String get(String filePath, String name) {
 		try {
 			InputStream input = new FileInputStream(filePath);
 			Properties prop = new Properties();
@@ -23,7 +23,7 @@ public class GConfig {
 		return null;
 	}
 
-	protected static void set(String filePath, String name, String value) {
+	public static void set(String filePath, String name, String value) {
 		try {
 			OutputStream output = new FileOutputStream(filePath);
 			Properties prop = new Properties();
