@@ -174,6 +174,10 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		String cmd = FileUtils.readFile(f);
 		return cmd;
 	}
+	
+	public void reload() {
+		this.stopAddin();
+	}
 
 	public void restartAll(boolean includeThisAddin) {
 		sendCommandAll("reload", includeThisAddin);
@@ -339,6 +343,9 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		}
 		else if ("fire".equals(cmd)) {
 			eventsFireForce();
+		}
+		else if ("reload".equals(cmd)) {
+			reload();
 		}
 		else if ("restart".equals(cmd)) {
 			restartAll(true);
