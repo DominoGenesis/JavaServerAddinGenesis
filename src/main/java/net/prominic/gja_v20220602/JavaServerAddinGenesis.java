@@ -1,15 +1,19 @@
 package net.prominic.gja_v20220602;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Properties;
 
 import lotus.domino.Database;
 import lotus.domino.NotesException;
@@ -43,7 +47,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected static final String 	COMMAND_FILE_NAME		= "command.txt";
 	private static final String 	LIVE_FILE_NAME			= "live.txt";
 	protected static final String 	CONFIG_FILE_NAME		= "config.txt";
-	
+
 	// constructor if parameters are provided
 	public JavaServerAddinGenesis(String[] args) {
 		this.args = args;
@@ -89,7 +93,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	public void runNotes() {
 		boolean initialize = runNotesInitialize();
 		if(!initialize) return;
-		
+
 		// Set the Java thread name to the class name (default would be "Thread-n")
 		this.setName(this.getJavaAddinName());
 		// Create the status line showed in 'Show Task' console command
@@ -106,7 +110,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 			boolean next = runNotesAfterInitialize();
 			if (!next) return;
-			
+
 			// add main event
 			EventTimeLive event = new EventTimeLive("LiveDateStamp", 60, true, this.m_logger);
 			event.FilePath = this.m_javaAddinLive;
@@ -116,7 +120,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			long monthInSeconds = 30 * 86400;
 			Event eventCleaner = new EventLogCleaner("LogCleaner", monthInSeconds, true, this.m_logger);
 			eventsAdd(eventCleaner);
-			
+
 			// cleanup old command file if exists
 			File file = new File(m_javaAddinCommand);
 			if (file.exists()) {
@@ -124,7 +128,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			}
 
 			showInfo();
-			
+
 			runNotesBeforeListen();
 			listen();
 		} catch(Exception e) {
@@ -135,7 +139,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected String getJavaAddinFolder() {
 		return this.m_javaAddinFolder;
 	}
-	
+
 	public String[] getAllAddin() {
 		File file = new File(JAVA_ADDIN_ROOT);
 		String[] directories = file.list(new FilenameFilter() {
@@ -174,7 +178,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		String cmd = FileUtils.readFile(f);
 		return cmd;
 	}
-	
+
 	public void reload() {
 		this.stopAddin();
 	}
@@ -183,26 +187,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		sendCommandAll("reload", includeThisAddin);
 	}
 
-	protected String getConfigValueString(String name) {
-		File f = new File(m_javaAddinConfig);
-		if (!f.exists()) return null;
-
-		String res = null;
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(f));
-			String st;
-			while ((st = br.readLine()) != null) {
-				if (st.startsWith(name + "=")) {
-					res = st.substring(st.indexOf("=")+1);
-				}
-			}
-			br.close();
-		}
-		catch (IOException e) {}
-
-		return res;
-	}
-	
 	protected boolean isLive(String javaAddin) {
 		File f = new File(javaAddin + File.separator + LIVE_FILE_NAME);
 		if (!f.exists()) return false;
@@ -222,7 +206,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 		return c1.after(c2);
 	}
-	
+
 	protected void listen() {
 		StringBuffer qBuffer = new StringBuffer(MQ_MAX_MSGSIZE);
 
@@ -278,7 +262,34 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			logSevere(e);
 		}
 	}
-	
+
+	protected String getConfigValue(String name) {
+		try {
+			InputStream input = new FileInputStream(this.m_javaAddinConfig);
+			Properties prop = new Properties();
+			prop.load(input);
+			return prop.getProperty(name);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	protected void setConfigValue(String name, String value) {
+		try {
+			OutputStream output = new FileOutputStream(this.m_javaAddinConfig);
+			Properties prop = new Properties();
+			prop.setProperty(name, value);
+			prop.store(output, null);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	protected void listenAfterWhile() {
 		setAddinState("Idle");		
 	}
@@ -322,13 +333,13 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			}
 		}
 	}
-	
+
 	private void eventsFireForce() {
 		for (Event event: m_events) {
 			event.run();
 		}
 	}
-	
+
 	protected boolean resolveMessageQueueState(String cmd) {
 		boolean flag = true;
 
@@ -364,7 +375,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		logMessage("   quit             Unload addin");
 		logMessage("   help             Show help information (or -h)");
 		logMessage("   info             Show version and more of Genesis");
-		
+
 		// in case if you need to extend help with other commands
 		showHelpExt();
 
@@ -385,7 +396,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		// in case if you need to extend help with other commands
 		showInfoExt();
 	}
-	
+
 	protected void quit() {
 		this.stopAddin();
 	}
@@ -465,7 +476,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	@Override
 	public void termThread() {
 		logMessage("MainThread: termThread");
-		
+
 		terminate();
 
 		super.termThread();
@@ -537,6 +548,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			e.printStackTrace();
 		}
 	}
-	*/
+	 */
 
 }
