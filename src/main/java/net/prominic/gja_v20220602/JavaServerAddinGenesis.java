@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220601;
+package net.prominic.gja_v20220602;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -63,7 +63,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.06.01";
+		return "2022.06.02";
 	}
 
 	protected String getQName() {
@@ -122,9 +122,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			if (file.exists()) {
 				file.delete();
 			}
-
-			ProgramConfig pc = new ProgramConfig(this.getJavaAddinName(), this.args, m_logger);
-			pc.setState(m_ab, ProgramConfig.LOAD);		// set program documents in LOAD state
 
 			showInfo();
 			
@@ -222,12 +219,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		return c1.after(c2);
 	}
 	
-	public void reload() {
-		ProgramConfig pc = new ProgramConfig(this.getJavaAddinName(), this.args, m_logger);
-		pc.setState(m_ab, ProgramConfig.UNLOAD);		// set program documents in UNLOAD state
-		this.stopAddin();
-	}
-
 	protected void listen() {
 		StringBuffer qBuffer = new StringBuffer(MQ_MAX_MSGSIZE);
 
@@ -348,9 +339,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		}
 		else if ("fire".equals(cmd)) {
 			eventsFireForce();
-		}
-		else if ("reload".equals(cmd)) {
-			reload();
 		}
 		else if ("restart".equals(cmd)) {
 			restartAll(true);

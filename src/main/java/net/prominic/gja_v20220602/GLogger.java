@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220601;
+package net.prominic.gja_v20220602;
 
 import java.io.BufferedWriter;
 import java.io.File;
