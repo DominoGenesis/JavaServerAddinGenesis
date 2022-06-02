@@ -262,32 +262,13 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			logSevere(e);
 		}
 	}
-
+	
 	protected String getConfigValue(String name) {
-		try {
-			InputStream input = new FileInputStream(this.m_javaAddinConfig);
-			Properties prop = new Properties();
-			prop.load(input);
-			return prop.getProperty(name);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return GConfig.get(this.m_javaAddinConfig, name);
 	}
 
 	protected void setConfigValue(String name, String value) {
-		try {
-			OutputStream output = new FileOutputStream(this.m_javaAddinConfig);
-			Properties prop = new Properties();
-			prop.setProperty(name, value);
-			prop.store(output, null);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		GConfig.set(this.m_javaAddinConfig, name, value);
 	}
 
 	protected void listenAfterWhile() {
