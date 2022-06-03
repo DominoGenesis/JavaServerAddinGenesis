@@ -169,6 +169,9 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		if (!f.exists()) return "";
 
 		String cmd = FileUtils.readFile(f);
+		if (!cmd.isEmpty()) {
+			f.delete();
+		}
 		return cmd;
 	}
 
