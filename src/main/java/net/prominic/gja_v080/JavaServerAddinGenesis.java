@@ -37,7 +37,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected final String 			JAVA_USER_CLASSES_EXT 	= "JavaUserClassesExt";
 	protected static final String 	JAVA_ADDIN_ROOT			= "JavaAddin";
 	protected static final String 	COMMAND_FILE_NAME		= "command.txt";
-	private static final String 	LIVE_FILE_NAME			= "live.txt";
+	protected static final String 	LIVE_FILE_NAME			= "live.txt";
 	protected static final String 	CONFIG_FILE_NAME		= "config.txt";
 
 	// constructor if parameters are provided
