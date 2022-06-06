@@ -443,14 +443,13 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		try {
 			AddInDeleteStatusLine(dominoTaskID);
 
-			termBeforeAB();
-
 			// delete file-live to indicate that addin is unloaded
 			File f = new File(m_javaAddinLive);
 			if (f.exists()) {
 				f.delete();
 			}
-			
+
+			termBeforeAB();
 			if (this.m_ab != null) {
 				this.m_ab.recycle();
 				this.m_ab = null;
@@ -469,45 +468,4 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			logSevere("UNLOADED (**FAILED**) " + this.getJavaAddinVersion());
 		}
 	}
-
-	/*
-	 * Clean old jar and log files
-	 * We keep last 5 jar files and last 5 log files
-	 */
-	/*
-	public void cleanOutdatedFiles(String ext) {
-		try {
-			File dir = new File("DominoMeterAddin");
-			if (!dir.isDirectory()) return;
-
-			File files[] = FileUtils.endsWith(dir, ext);
-			if (files.length <= 5) return;
-
-			int count = 0;
-			StringBuffer deletedFiles = new StringBuffer();
-			files = FileUtils.sortFilesByModified(files, false);
-			for (int i = 5; i < files.length; i++) {
-				File file = files[i];
-				if (!file.getName().equalsIgnoreCase(version)) {
-					file.delete();
-					if (count > 0) deletedFiles.append(", ");
-					deletedFiles.append(file.getName());
-					count++;
-				}
-			}
-
-			if (count>0) {
-				fileLogger.info("Removed files (" + Integer.toString(count) + "): " + deletedFiles.toString());
-				Log.sendLog(server, endpoint, "Removed files (" + Integer.toString(count) + ")", deletedFiles.toString());
-			}
-
-		} catch (Exception e) {
-			incrementExceptionTotal();
-			fileLogger.severe(e);
-			Log.sendError(server, endpoint, new ParsedError(e));
-			e.printStackTrace();
-		}
-	}
-	 */
-
 }
