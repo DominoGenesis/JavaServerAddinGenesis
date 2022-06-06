@@ -6,7 +6,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 
 import lotus.domino.Database;
 import lotus.domino.NotesException;
@@ -153,10 +152,8 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		for(int i=0; i<directories.length; i++) {
 			if (incudeThisAddin || !directories[i].equalsIgnoreCase(getJavaAddinName())) {
 				String javaAddin = JAVA_ADDIN_ROOT + File.separator + directories[i];
-				if (isLive(javaAddin)) {
-					File fileCommand = new File(javaAddin + File.separator + COMMAND_FILE_NAME);
-					FileUtils.writeFile(fileCommand, command);	
-				}
+				File fileCommand = new File(javaAddin + File.separator + COMMAND_FILE_NAME);
+				FileUtils.writeFile(fileCommand, command);	
 			}
 		}		
 	}
@@ -181,26 +178,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 	public void restartAll(boolean includeThisAddin) {
 		sendCommandAll("reload", includeThisAddin);
-	}
-
-	protected boolean isLive(String javaAddin) {
-		File f = new File(javaAddin + File.separator + LIVE_FILE_NAME);
-		if (!f.exists()) return false;
-
-		String sTimeStamp = FileUtils.readFile(f);
-		if (sTimeStamp.length() == 0) return false;
-
-		// last live date
-		long timeStamp = Long.parseLong(sTimeStamp);
-		Date date1 = new Date(timeStamp);
-		Calendar c1 = Calendar.getInstance();
-		c1.setTime(date1);
-		c1.add(Calendar.HOUR, 1);
-
-		// current date
-		Calendar c2 = Calendar.getInstance();
-
-		return c1.after(c2);
 	}
 
 	protected void listen() {
@@ -258,7 +235,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			logSevere(e);
 		}
 	}
-	
+
 	protected String getConfigValue(String name) {
 		return GConfig.get(this.m_javaAddinConfig, name);
 	}
