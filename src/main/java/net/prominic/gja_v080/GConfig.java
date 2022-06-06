@@ -1,5 +1,6 @@
 package net.prominic.gja_v080;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -11,7 +12,10 @@ import java.util.Properties;
 public class GConfig {
 	public static String get(String filePath, String name) {
 		try {
-			InputStream input = new FileInputStream(filePath);
+			File file = new File(filePath);
+			if (!file.exists()) return null;
+			
+			InputStream input = new FileInputStream(file);
 			Properties prop = new Properties();
 			prop.load(input);
 			return prop.getProperty(name);
@@ -26,8 +30,12 @@ public class GConfig {
 	public static void set(String filePath, String name, String value) {
 		try {
 			Properties prop = new Properties();
-			FileInputStream fis = new FileInputStream(filePath);
-			prop.load(fis);
+
+			File file = new File(filePath);
+			if (file.exists()) {
+				FileInputStream fis = new FileInputStream(file);
+				prop.load(fis);
+			}
 
 	        // add/replace value
 			prop.setProperty(name, value);
@@ -41,4 +49,5 @@ public class GConfig {
 			e.printStackTrace();
 		}
 	}
+
 }
