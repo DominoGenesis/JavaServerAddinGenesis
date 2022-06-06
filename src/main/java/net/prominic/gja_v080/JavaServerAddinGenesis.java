@@ -445,6 +445,12 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
 			termBeforeAB();
 
+			// delete file-live to indicate that addin is unloaded
+			File f = new File(m_javaAddinLive);
+			if (f.exists()) {
+				f.delete();
+			}
+			
 			if (this.m_ab != null) {
 				this.m_ab.recycle();
 				this.m_ab = null;

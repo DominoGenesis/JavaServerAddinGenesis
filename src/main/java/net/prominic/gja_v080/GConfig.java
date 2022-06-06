@@ -22,13 +22,19 @@ public class GConfig {
 		}
 		return null;
 	}
-
+	
 	public static void set(String filePath, String name, String value) {
 		try {
-			OutputStream output = new FileOutputStream(filePath);
 			Properties prop = new Properties();
+			FileInputStream fis = new FileInputStream(filePath);
+			prop.load(fis);
+
+	        // add/replace value
 			prop.setProperty(name, value);
+			
+			OutputStream output = new FileOutputStream(filePath);
 			prop.store(output, null);
+			output.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
