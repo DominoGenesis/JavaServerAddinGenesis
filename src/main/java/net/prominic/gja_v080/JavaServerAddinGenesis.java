@@ -1,4 +1,4 @@
-package net.prominic.gja_v20220602;
+package net.prominic.gja_v080;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -60,7 +60,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "2022.06.02";
+		return "0.8.0";
 	}
 
 	protected String getQName() {
