@@ -1,4 +1,4 @@
-package net.prominic.gja_v081;
+package net.prominic.gja_v082;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -72,6 +72,10 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected boolean runNotesInitialize() {
 		return true;
 	}
+	
+	protected String getFolderName() {
+		return this.getClass().getName();
+	}
 
 	/*
 	 * Used for validation & initialization
@@ -91,7 +95,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 		// Create the status line showed in 'Show Task' console command
 		this.dominoTaskID = createAddinStatusLine(this.getJavaAddinName());
 		try {
-			m_javaAddinFolder = JAVA_ADDIN_ROOT + File.separator + this.getClass().getName();
+			m_javaAddinFolder = JAVA_ADDIN_ROOT + File.separator + getFolderName();
 			m_logger = new GLogger(m_javaAddinFolder);
 			m_session = NotesFactory.createSession();
 			m_ab = m_session.getDatabase(m_session.getServerName(), "names.nsf");

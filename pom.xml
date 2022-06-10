@@ -3,7 +3,7 @@
 	<groupId>net.prominic</groupId>
 	<artifactId>gja</artifactId>
 	<packaging>jar</packaging>
-	<version>0.8.1</version>
+	<version>0.8.2</version>
 	<name>GJA</name>
 	<url>http://maven.apache.org</url>
 
@@ -26,6 +26,18 @@
 					</execution>
 				</executions>
 				<configuration />
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.10.1</version>
+				<configuration>
+					<compilerArgs>
+						<arg>-Xlint:all</arg>
+						<arg>-Xmaxwarns</arg>
+						<arg>50000</arg>
+					</compilerArgs>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
