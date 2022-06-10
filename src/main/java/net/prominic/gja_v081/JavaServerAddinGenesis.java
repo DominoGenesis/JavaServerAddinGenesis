@@ -1,4 +1,4 @@
-package net.prominic.gja_v080;
+package net.prominic.gja_v081;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -59,7 +59,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "0.8.0";
+		return "0.8.1";
 	}
 
 	protected String getQName() {
@@ -69,7 +69,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	/*
 	 * Used for initialization
 	 */
-	private boolean runNotesInitialize() {
+	protected boolean runNotesInitialize() {
 		return true;
 	}
 
@@ -114,10 +114,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			eventsAdd(eventCleaner);
 
 			// cleanup old command file if exists
-			File file = new File(m_javaAddinCommand);
-			if (file.exists()) {
-				file.delete();
-			}
+			FileUtils.deleteFile(m_javaAddinCommand);
 
 			showInfo();
 
@@ -444,10 +441,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			AddInDeleteStatusLine(dominoTaskID);
 
 			// delete file-live to indicate that addin is unloaded
-			File f = new File(m_javaAddinLive);
-			if (f.exists()) {
-				f.delete();
-			}
+			FileUtils.deleteFile(m_javaAddinLive);
 
 			termBeforeAB();
 			if (this.m_ab != null) {

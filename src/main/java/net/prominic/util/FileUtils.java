@@ -148,7 +148,7 @@ public class FileUtils {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static String readFile(File file) {
 		if (!file.exists()) return "";
 
@@ -168,6 +168,15 @@ public class FileUtils {
 		}
 
 		return contentBuilder.toString();
+	}
+
+	public static void deleteFile(String filePath) {
+		if (filePath == null) return;
+
+		File f = new File(filePath);
+		if (!f.exists()) return;
+
+		f.delete();
 	}
 
 }
