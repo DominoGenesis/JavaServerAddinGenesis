@@ -1,4 +1,4 @@
-package net.prominic.gja_v082;
+package net.prominic.gja_v083;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -59,7 +59,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "0.8.2";
+		return "0.8.3";
 	}
 
 	protected String getQName() {
@@ -148,6 +148,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	/*
 	 * scan JavaAddin folder for sub-folders (addins) and update command.txt with a command
 	 */
+	@SuppressWarnings("unused")
 	private void sendCommandAll(String command, boolean incudeThisAddin) {
 		String[] directories = getAllAddin();
 		for(int i=0; i<directories.length; i++) {
@@ -178,7 +179,13 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	public void restartAll(boolean includeThisAddin) {
-		sendCommandAll("reload", includeThisAddin);
+		//sendCommandAll("reload", includeThisAddin);
+		try {
+			logMessage("Unload all runjava addins");
+			m_session.sendConsoleCommand("", "!tell runjava quit");
+		} catch (NotesException e) {
+			e.printStackTrace();
+		}
 	}
 
 	protected void listen() {
