@@ -1,4 +1,4 @@
-package net.prominic.gja_v083;
+package net.prominic.gja_v084;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -59,7 +59,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "0.8.3";
+		return "0.8.4";
 	}
 
 	protected String getQName() {
@@ -98,7 +98,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_javaAddinFolder = JAVA_ADDIN_ROOT + File.separator + getFolderName();
 			m_logger = new GLogger(m_javaAddinFolder);
 			m_session = NotesFactory.createSession();
-			m_ab = m_session.getDatabase(m_session.getServerName(), "names.nsf");
+			m_ab = m_session.getDatabase(null, "names.nsf");
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
 			m_javaAddinConfig = m_javaAddinFolder + File.separator + CONFIG_FILE_NAME;
@@ -449,24 +449,25 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 */
 	protected void terminate() {
 		try {
-			AddInDeleteStatusLine(dominoTaskID);
-
 			// delete file-live to indicate that addin is unloaded
 			FileUtils.deleteFile(m_javaAddinLive);
 
-			termBeforeAB();
 			if (this.m_ab != null) {
 				this.m_ab.recycle();
 				this.m_ab = null;
 			}
+
 			if (this.m_session != null) {
 				this.m_session.recycle();
 				this.m_session = null;
 			}
+			
 			if (this.mq != null) {
 				this.mq.close(0);
 				this.mq = null;
 			}
+			
+			if (dominoTaskID != 0) AddInDeleteStatusLine(dominoTaskID);
 
 			logMessage("UNLOADED (OK) " + this.getJavaAddinVersion());
 		} catch (NotesException e) {
