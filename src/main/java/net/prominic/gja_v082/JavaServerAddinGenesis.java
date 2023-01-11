@@ -59,7 +59,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "0.8.2";
+		return "0.8.3";
 	}
 
 	protected String getQName() {
