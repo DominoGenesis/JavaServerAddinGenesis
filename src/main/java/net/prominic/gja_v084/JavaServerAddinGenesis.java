@@ -1,4 +1,4 @@
-package net.prominic.gja_v083;
+package net.prominic.gja_v084;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -59,7 +59,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	protected String getCoreVersion() {
-		return "0.8.3";
+		return "0.8.4";
 	}
 
 	protected String getQName() {
@@ -178,7 +178,13 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	public void restartAll(boolean includeThisAddin) {
-		sendCommandAll("reload", includeThisAddin);
+		//sendCommandAll("reload", includeThisAddin);
+
+		try {
+			m_session.sendConsoleCommand("", "restart task runjava");
+		} catch (NotesException e) {
+			e.printStackTrace();
+		}
 	}
 
 	protected void listen() {
