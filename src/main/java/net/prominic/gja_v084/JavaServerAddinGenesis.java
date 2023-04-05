@@ -178,13 +178,19 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	public void restartAll(boolean includeThisAddin) {
-		//sendCommandAll("reload", includeThisAddin);
-
 		try {
-			m_session.sendConsoleCommand("", "restart task runjava");
+			String sh_ser = m_session.sendConsoleCommand("", "!sh task");
+			if(sh_ser.contains("ISpy")) {
+				m_session.sendConsoleCommand("", "!tell runjava unload ISpy");
+			}
+			if(sh_ser.contains("RM Evaluation")) {
+				m_session.sendConsoleCommand("", "!tell runjava unload RMEval");
+			}
 		} catch (NotesException e) {
 			e.printStackTrace();
 		}
+		
+		sendCommandAll("reload", includeThisAddin);
 	}
 
 	protected void listen() {
