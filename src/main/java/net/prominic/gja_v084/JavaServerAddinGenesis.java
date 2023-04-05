@@ -178,6 +178,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	public void restartAll(boolean includeThisAddin) {
+		logMessage("Shut down all detected JavaAddins...");
 		try {
 			String sh_ser = m_session.sendConsoleCommand("", "!sh task");
 			if(sh_ser.contains("ISpy")) {
