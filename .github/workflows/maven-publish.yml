@@ -23,29 +23,3 @@ jobs:
         wget 'https://domino-1.dmytro.cloud/Files.nsf/all/file/$FILE/Notes.jar' -O Notes.jar -q --show-progress
         echo "adding Notes.jar to local maven storage"
         mvn install:install-file -Dfile="Notes.jar" -DgroupId=lotus.notes -DartifactId=notes -Dversion=10.0 -Dpackaging=jar 
-    - name: 3. Build with Maven
-      run: mvn -B package --file pom.xml
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: my-artifact
-          path: target/my-artifact.jar
