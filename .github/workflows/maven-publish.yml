@@ -1,4 +1,4 @@
-name: Build with Maven and Java 8
+name: Build with Maven and Java 6
 
 on:
   push:
@@ -7,9 +7,9 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    container:
+      image: openjdk:6-jdk
     steps:
     - uses: actions/checkout@v3
     - name: 1. Set up Java 8
