@@ -24,7 +24,9 @@ jobs:
         mvn install:install-file -Dfile="Notes.jar" -DgroupId=lotus.notes -DartifactId=notes -Dversion=10.0 -Dpackaging=jar 
     - name: 3. Build with Maven
       run: mvn package
-    - name: 4. Create release
+    - name: 4. Load version from pom.xml
+      run: echo "::set-env name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
+    - name: 5. Create release
       id: create_release
       uses: actions/create-release@v1.0.1
       env:
@@ -40,7 +42,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: target/gja-0.8.4.jar
-        asset_name: gja-0.8.4.jar
+        asset_path: target/gja-${{ env.version }}.jar
+        asset_name: gja-${{ env.version }}.jar
         asset_content_type: application/java-archive
 
