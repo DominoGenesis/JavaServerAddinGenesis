@@ -23,10 +23,15 @@ jobs:
         echo "adding Notes.jar to local maven storage"
         mvn install:install-file -Dfile="Notes.jar" -DgroupId=lotus.notes -DartifactId=notes -Dversion=10.0 -Dpackaging=jar 
     - name: 3. Build with Maven
-      run: mvn clean install
-    - name: 4. Upload JAR artifact
-      uses: actions/upload-artifact@v2
+      run: mvn package
+    - name: 4. Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: gja
-        path: ${{ env.JAR_FILE }}
-        if-no-files-found: warn
+        tag_name: v${{ env.version }}
+        release_name: Release ${{ env.version }}
+        body: |
+          Release ${{ env.version }}
+        draft: false
+        prerelease: false
