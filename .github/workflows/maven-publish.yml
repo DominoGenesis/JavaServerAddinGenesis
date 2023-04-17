@@ -25,7 +25,7 @@ jobs:
     - name: 3. Build with Maven
       run: mvn clean install
     - name: 4. Upload JAR artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
         name: gja
         path: ${{ env.JAR_FILE }}
