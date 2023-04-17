@@ -27,7 +27,7 @@ jobs:
       run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
     - name: 5. Create release
       id: create_release
-      uses: actions/create-release@v1.0.1
+      uses: actions/create-release@v1.12.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
