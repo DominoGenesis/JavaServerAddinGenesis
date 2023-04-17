@@ -32,5 +32,7 @@ jobs:
         name: Release v${{ env.version }}
         token: ${{ secrets.GITHUB_TOKEN }}
         tag_name: v${{ env.version }}
+        files: |
+          target/gja-${{ env.version }}.jar
         draft: false
         prerelease: false
