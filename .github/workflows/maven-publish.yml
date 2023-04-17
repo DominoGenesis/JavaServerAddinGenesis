@@ -28,5 +28,5 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: gja
-        if-no-files-found: warn
         path: ${{ env.JAR_FILE }}
+        if-no-files-found: warn
