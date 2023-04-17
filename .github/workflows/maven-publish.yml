@@ -24,3 +24,8 @@ jobs:
         mvn install:install-file -Dfile="Notes.jar" -DgroupId=lotus.notes -DartifactId=notes -Dversion=10.0 -Dpackaging=jar 
     - name: 3. Build with Maven
       run: mvn clean install
+    - name: 4. Upload JAR artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: gja
+        path: ${{ env.JAR_FILE }}
