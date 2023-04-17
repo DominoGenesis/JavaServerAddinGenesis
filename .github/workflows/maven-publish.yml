@@ -24,8 +24,8 @@ jobs:
         mvn install:install-file -Dfile="Notes.jar" -DgroupId=lotus.notes -DartifactId=notes -Dversion=10.0 -Dpackaging=jar 
     - name: 3. Build with Maven
       run: mvn package
-    - name: 4. Load version from pom.xml
-      run: echo "::set-env name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
+    - name: 4. Set version
+      run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
     - name: 5. Create release
       id: create_release
       uses: actions/create-release@v1.0.1
