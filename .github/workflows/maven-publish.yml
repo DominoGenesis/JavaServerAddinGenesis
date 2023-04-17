@@ -1,4 +1,4 @@
-name: Build with Maven and Java 6
+name: Build with Maven and Java 8
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: 1. Set up Java 6
+    - name: 1. Set up Java 8
       uses: actions/setup-java@v3
       with:
         java-version: '8'
@@ -28,4 +28,5 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: gja
+        if-no-files-found: warn
         path: ${{ env.JAR_FILE }}
