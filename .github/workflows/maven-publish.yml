@@ -16,6 +16,7 @@ jobs:
       uses: actions/setup-java@v2
       with:
         java-version: '1.6'
+        distribution: 'adopt'
     - name: 2. Download Notes.jar and add it to local maven repository
       run: |
         wget 'https://domino-1.dmytro.cloud/Files.nsf/all/file/$FILE/Notes.jar' -O Notes.jar -q --show-progress
