@@ -1,58 +1,39 @@
-name: Build and Release with Maven and Java 8
+name: Build and Release
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-
+ 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java: [6, 8]
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Java ${{ matrix.java }}
-      uses: actions/setup-java@v1
+    - uses: actions/checkout@v3
+    - name: 1. Set up Java 8
+      uses: actions/setup-java@v3
       with:
-        java-version: ${{ matrix.java }}
+        java-version: '8'
         distribution: 'adopt'
-    - name: Download Notes.jar and add it to local maven repository
+    - name: 2. Download Notes.jar and add it to local maven repository
       run: |
         wget 'https://domino-1.dmytro.cloud/Files.nsf/all/file/$FILE/Notes.jar' -O Notes.jar -q --show-progress
         echo "adding Notes.jar to local maven storage"
         mvn install:install-file -Dfile="Notes.jar" -DgroupId=lotus.notes -DartifactId=notes -Dversion=10.0 -Dpackaging=jar 
-    - name: Build with Maven
+    - name: 3. Build with Maven
       run: mvn package
-    - name: Set version
+    - name: 4. Set version
       run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.version }}
-          release_name: Release ${{ env.version }}
-          draft: false
-          prerelease: false
-      - name: Upload artifact
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/gja-${{ env.version }}.jar
-          asset_name: gja-${{ env.version }}.jar
-          asset_content_type: application/java-archive
+    - name: 5. Create release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release v${{ env.version }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: v${{ env.version }}
+        files: |
+          target/gja-${{ env.version }}.jar
+        draft: false
+        prerelease: false
+        
