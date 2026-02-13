@@ -1,4 +1,4 @@
-package net.prominic.util;
+package net.prominic.gja_v085.utils;
 
 import java.io.BufferedReader;
 import java.io.File;

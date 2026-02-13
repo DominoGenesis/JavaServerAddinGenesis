@@ -1,19 +1,20 @@
-package net.prominic.gja_v084;
+package net.prominic.gja_v085;
 
 import java.io.File;
+
 import java.io.FilenameFilter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
-import lotus.domino.Database;
 import lotus.domino.NotesException;
 import lotus.domino.NotesFactory;
 import lotus.domino.Session;
 import lotus.notes.addins.JavaServerAddin;
 import lotus.notes.internal.MessageQueue;
-import net.prominic.util.FileUtils;
+import net.prominic.gja_v085.utils.FileUtils;
+import net.prominic.gja_v085.utils.DominoUtils;
 
 public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 
@@ -23,7 +24,6 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected static final int 		MQ_MAX_MSGSIZE 			= 1024;
 	protected MessageQueue 			mq						= null;
 	protected Session 				m_session				= null;
-	protected Database				m_ab					= null;
 	protected String				m_javaAddinFolder		= null;
 	protected String				m_javaAddinCommand		= null;
 	protected String				m_javaAddinLive			= null;
@@ -52,14 +52,14 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	protected void showHelpExt() {}
 	protected void showInfoExt() {}
 	protected void runNotesBeforeListen() {}
-	protected void termBeforeAB() {}
+	protected void termBeforeCleanup() {}
 
 	protected String getJavaAddinName() {
 		return this.getClass().getName();
 	}
 
 	protected String getCoreVersion() {
-		return "0.8.4";
+		return "0.8.5";
 	}
 
 	protected String getQName() {
@@ -98,14 +98,16 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			m_javaAddinFolder = JAVA_ADDIN_ROOT + File.separator + getFolderName();
 			m_logger = new GLogger(m_javaAddinFolder);
 			m_session = NotesFactory.createSession();
-			m_ab = m_session.getDatabase(null, "names.nsf");
 			m_javaAddinCommand = m_javaAddinFolder + File.separator + COMMAND_FILE_NAME;
 			m_javaAddinLive = m_javaAddinFolder + File.separator + LIVE_FILE_NAME;
 			m_javaAddinConfig = m_javaAddinFolder + File.separator + CONFIG_FILE_NAME;
 			m_startDateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
 
 			boolean next = runNotesAfterInitialize();
-			if (!next) return;
+			if (!next) {
+			    terminate();
+			    return;
+			};
 
 			// add main event
 			EventTimeLive event = new EventTimeLive("LiveDateStamp", 60, true, this.m_logger);
@@ -148,10 +150,10 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	/*
 	 * scan JavaAddin folder for sub-folders (addins) and update command.txt with a command
 	 */
-	private void sendCommandAll(String command, boolean incudeThisAddin) {
+	private void sendCommandAll(String command, boolean includeThisAddin) {
 		String[] directories = getAllAddin();
 		for(int i=0; i<directories.length; i++) {
-			if (incudeThisAddin || !directories[i].equalsIgnoreCase(getJavaAddinName())) {
+			if (includeThisAddin || !directories[i].equalsIgnoreCase(getJavaAddinName())) {
 				String javaAddin = JAVA_ADDIN_ROOT + File.separator + directories[i];
 				File fileCommand = new File(javaAddin + File.separator + COMMAND_FILE_NAME);
 				FileUtils.writeFile(fileCommand, command);	
@@ -278,6 +280,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	private void eventsFireOnStart() {
+	    if (m_events == null) return;
 		for (int i = 0; i < m_events.size(); i++) {
 			Event event = m_events.get(i);
 			if (event.fireOnStart()) {
@@ -291,6 +294,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	private void eventsFire(boolean resetTimer) {
+		if (m_events == null) return;
 		for (int i = 0; i < m_events.size(); i++) {
 			Event event = m_events.get(i);
 			if (event.fire()) {
@@ -303,6 +307,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	}
 
 	private void eventsFireForce() {
+		if (m_events == null) return;
 		for (Event event: m_events) {
 			event.run();
 		}
@@ -438,7 +443,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 	 * @return	Domino task ID
 	 */
 	protected final int createAddinStatusLine(String name) {
-		return (AddInCreateStatusLine(name));
+		return AddInCreateStatusLine(name);
 	}
 
 	@Override
@@ -458,16 +463,9 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			// delete file-live to indicate that addin is unloaded
 			FileUtils.deleteFile(m_javaAddinLive);
 
-			termBeforeAB();
-			if (this.m_ab != null) {
-				this.m_ab.recycle();
-				this.m_ab = null;
-			}
-
-			if (this.m_session != null) {
-				this.m_session.recycle();
-				this.m_session = null;
-			}
+			termBeforeCleanup();
+			
+			DominoUtils.recycle(m_session);
 			
 			if (this.mq != null) {
 				this.mq.close(0);
@@ -477,7 +475,7 @@ public abstract class JavaServerAddinGenesis extends JavaServerAddin {
 			if (dominoTaskID != 0) AddInDeleteStatusLine(dominoTaskID);
 
 			logMessage("UNLOADED (OK) " + this.getJavaAddinVersion());
-		} catch (NotesException e) {
+		} catch (Exception e) {
 			logSevere("UNLOADED (**FAILED**) " + this.getJavaAddinVersion());
 		}
 	}

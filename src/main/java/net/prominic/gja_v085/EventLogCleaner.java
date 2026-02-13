@@ -1,8 +1,7 @@
-package net.prominic.gja_v084;
+package net.prominic.gja_v085;
 
 import java.io.File;
-
-import net.prominic.util.FileUtils;
+import net.prominic.gja_v085.utils.FileUtils;
 
 public class EventLogCleaner extends Event {
 	public EventLogCleaner(String name, long seconds, boolean fireOnStart, GLogger logger) {
